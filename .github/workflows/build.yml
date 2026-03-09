@@ -22,6 +22,7 @@ jobs:
           flutter create horouf_game --platforms windows
           Copy-Item -Path "main.dart" -Destination "horouf_game\lib\main.dart" -Force
           cd horouf_game
+          flutter pub add window_manager
           flutter build windows --release
 
       - name: Upload Windows Exe

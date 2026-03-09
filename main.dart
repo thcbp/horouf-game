@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // مكتبة النسخ للحافظة
 import 'package:window_manager/window_manager.dart';
 import 'dart:math';
 import 'dart:convert';
@@ -115,9 +116,7 @@ class DataManager {
 }
 
 class GlobalData {
-  static Map<String, List<Map<String, String>>> questionBank = {
-    'أ': [{'q': 'حيوان مفترس يلقب بملك الغابة؟', 'a': 'أسد'}],
-  };
+  static Map<String, List<Map<String, String>>> questionBank = {};
   static final List<String> allArabicLetters = [
     'أ','ب','ت','ث','ج','ح','خ','د','ذ','ر','ز','س','ش','ص',
     'ض','ط','ظ','ع','غ','ف','ق','ك','ل','م','ن','هـ','و','ي'
@@ -128,7 +127,6 @@ class GlobalData {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // تشغيل ملء الشاشة للويندوز
   await windowManager.ensureInitialized();
   WindowOptions windowOptions = const WindowOptions(
     size: Size(1280, 720),
@@ -140,7 +138,6 @@ void main() async {
     await windowManager.focus();
   });
 
-  // تشغيل السيرفر السري وتحميل الذاكرة
   HostServer.start();
   await DataManager.loadBank();
 
@@ -228,7 +225,6 @@ class MainMenuScreen extends StatelessWidget {
         painter: BackgroundPainter(),
         child: Stack(
           children: [
-            // زر ملء الشاشة
             Positioned(
               top: 20,
               right: 20,
@@ -254,7 +250,27 @@ class MainMenuScreen extends StatelessWidget {
                   children: [
                     const Text('حـــروف', style: TextStyle(fontSize: 60, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 5)),
                     const SizedBox(height: 10),
-                    const Text('شاشة الهوست السرية: http://localhost:8080', style: TextStyle(fontSize: 18, color: Colors.greenAccent)),
+                    
+                    // رابط الهوست مع زر النسخ
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                      decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(10)),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('رابط الهوست:  http://localhost:8080', style: TextStyle(fontSize: 18, color: Colors.greenAccent)),
+                          const SizedBox(width: 15),
+                          IconButton(
+                            icon: const Icon(Icons.copy, color: Colors.white),
+                            tooltip: 'نسخ الرابط',
+                            onPressed: () {
+                              Clipboard.setData(const ClipboardData(text: 'http://localhost:8080'));
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم نسخ الرابط! الصقه في متصفحك.', style: TextStyle(fontSize: 16))));
+                            },
+                          )
+                        ],
+                      ),
+                    ),
                     const SizedBox(height: 50),
                     SizedBox(
                       width: 300, height: 60,
@@ -294,10 +310,13 @@ class QuestionBankScreen extends StatefulWidget {
 }
 
 class _QuestionBankScreenState extends State<QuestionBankScreen> {
-  void _showAddQuestionDialog() {
-    String selectedLetter = 'أ';
-    TextEditingController qController = TextEditingController();
-    TextEditingController aController = TextEditingController();
+  Map<String, List<Map<String, String>>> backupBank = {}; // الذاكرة الاحتياطية للتراجع
+
+  void _showQuestionDialog({String? letter, int? index, String? initialQ, String? initialA}) {
+    String selectedLetter = letter ?? 'أ';
+    TextEditingController qController = TextEditingController(text: initialQ ?? '');
+    TextEditingController aController = TextEditingController(text: initialA ?? '');
+    bool isEditing = index != null;
 
     showDialog(
       context: context,
@@ -306,7 +325,7 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
           builder: (context, setDialogState) {
             return AlertDialog(
               backgroundColor: const Color(0xFF1E1E2C),
-              title: const Text('إضافة سؤال', style: TextStyle(color: Colors.white)),
+              title: Text(isEditing ? 'تعديل السؤال' : 'إضافة سؤال', style: const TextStyle(color: Colors.white)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -315,7 +334,7 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
                     dropdownColor: const Color(0xFF2D2D44),
                     style: const TextStyle(color: Colors.orangeAccent, fontSize: 24, fontWeight: FontWeight.bold),
                     items: GlobalData.allArabicLetters.map((String value) => DropdownMenuItem<String>(value: value, child: Text("حرف ( $value )"))).toList(),
-                    onChanged: (newValue) => setDialogState(() => selectedLetter = newValue!),
+                    onChanged: isEditing ? null : (newValue) => setDialogState(() => selectedLetter = newValue!),
                   ),
                   TextField(controller: qController, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'السؤال')),
                   TextField(controller: aController, style: const TextStyle(color: Colors.greenAccent), decoration: const InputDecoration(labelText: 'الإجابة')),
@@ -327,9 +346,14 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
                     if (qController.text.isNotEmpty && aController.text.isNotEmpty) {
                       setState(() {
                         if (!GlobalData.questionBank.containsKey(selectedLetter)) GlobalData.questionBank[selectedLetter] = [];
-                        GlobalData.questionBank[selectedLetter]!.add({'q': qController.text, 'a': aController.text});
+                        
+                        if (isEditing) {
+                          GlobalData.questionBank[selectedLetter]![index] = {'q': qController.text, 'a': aController.text};
+                        } else {
+                          GlobalData.questionBank[selectedLetter]!.add({'q': qController.text, 'a': aController.text});
+                        }
                       });
-                      await DataManager.saveBank(); // حفظ في الملف
+                      await DataManager.saveBank();
                       Navigator.pop(context);
                     }
                   },
@@ -340,6 +364,69 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
           }
         );
       }
+    );
+  }
+
+  void _deleteQuestion(String letter, int index) {
+    setState(() {
+      GlobalData.questionBank[letter]!.removeAt(index);
+    });
+    DataManager.saveBank();
+  }
+
+  void _clearAllQuestions() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E2C),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 30),
+            SizedBox(width: 10),
+            Text('تحذير خطير!', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: const Text('هل أنت متأكد أنك تريد حذف جميع الأسئلة من التطبيق؟', style: TextStyle(color: Colors.white, fontSize: 18)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء', style: TextStyle(color: Colors.white54))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              
+              // أخذ نسخة احتياطية قبل الحذف للتراجع
+              backupBank.clear();
+              GlobalData.questionBank.forEach((k, v) {
+                backupBank[k] = List.from(v.map((item) => Map<String, String>.from(item)));
+              });
+              
+              setState(() {
+                GlobalData.questionBank.clear();
+              });
+              await DataManager.saveBank();
+              
+              // إشعار مع زر التراجع
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('تم مسح جميع الأسئلة بنجاح!', style: TextStyle(fontSize: 16)),
+                  backgroundColor: const Color(0xFF2D2D44),
+                  duration: const Duration(seconds: 7),
+                  action: SnackBarAction(
+                    label: 'تراجع ↩️',
+                    textColor: Colors.orangeAccent,
+                    onPressed: () async {
+                      setState(() {
+                        GlobalData.questionBank = Map.from(backupBank);
+                      });
+                      await DataManager.saveBank();
+                    },
+                  ),
+                )
+              );
+            }
+          )
+        ]
+      )
     );
   }
 
@@ -374,9 +461,9 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
                       }
                     });
                   });
-                  await DataManager.saveBank(); // حفظ في الملف
+                  await DataManager.saveBank();
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم استيراد وحفظ الأسئلة بنجاح!')));
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم الاستيراد بنجاح!')));
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('خطأ في صيغة الـ JSON!'), backgroundColor: Colors.red));
                 }
@@ -396,13 +483,16 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
         backgroundColor: const Color(0xFF1E1E2C),
         title: const Text('بنك الأسئلة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
         centerTitle: true,
-        actions: [IconButton(icon: const Icon(Icons.data_object, color: Colors.blueAccent), onPressed: _showImportDialog)],
+        actions: [
+          IconButton(icon: const Icon(Icons.data_object, color: Colors.blueAccent), tooltip: 'استيراد', onPressed: _showImportDialog),
+          IconButton(icon: const Icon(Icons.delete_sweep, color: Colors.redAccent), tooltip: 'حذف الكل', onPressed: _clearAllQuestions),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: Colors.orangeAccent,
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text('إضافة سؤال', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        onPressed: _showAddQuestionDialog,
+        onPressed: () => _showQuestionDialog(),
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(20),
@@ -416,11 +506,22 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
             child: ExpansionTile(
               title: Text('حرف ( $letter )', style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
               subtitle: Text('عدد الأسئلة: ${questions.length}', style: const TextStyle(color: Colors.white54)),
-              children: questions.map((q) => ListTile(
-                title: Text(q['q']!, style: const TextStyle(color: Colors.white, fontSize: 18)),
-                subtitle: Text('الإجابة: ${q['a']}', style: const TextStyle(color: Colors.greenAccent)),
-                leading: const Icon(Icons.help_outline, color: Colors.orangeAccent),
-              )).toList(),
+              children: questions.asMap().entries.map((entry) {
+                int qIndex = entry.key;
+                var q = entry.value;
+                return ListTile(
+                  title: Text(q['q']!, style: const TextStyle(color: Colors.white, fontSize: 18)),
+                  subtitle: Text('الإجابة: ${q['a']}', style: const TextStyle(color: Colors.greenAccent)),
+                  leading: const Icon(Icons.help_outline, color: Colors.orangeAccent),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(icon: const Icon(Icons.edit, color: Colors.blueAccent), onPressed: () => _showQuestionDialog(letter: letter, index: qIndex, initialQ: q['q'], initialA: q['a'])),
+                      IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent), onPressed: () => _deleteQuestion(letter, qIndex)),
+                    ],
+                  ),
+                );
+              }).toList(),
             ),
           );
         },
@@ -492,8 +593,8 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     ];
 
     int currentQIndex = 0;
+    bool isAnswerRevealed = false; // التحكم بظهور الإجابة في الشاشة الرئيسية
     
-    // إرسال البيانات فوراً لشاشة الهوست السرية
     HostServer.updateData(letter, questions[currentQIndex]['q']!, questions[currentQIndex]['a']!);
 
     _showAnimatedDialog(
@@ -516,23 +617,48 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                   style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold, height: 1.5),
                 ),
                 const SizedBox(height: 20),
-                // صندوق الإجابة تم تغييره ليكون آمناً للبث
-                Container(
+                
+                // الإجابة (تكون مخفية افتراضياً، وتظهر إذا ضغط الهوست زر الإظهار)
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
                   padding: const EdgeInsets.all(15),
-                  decoration: BoxDecoration(color: Colors.blueAccent.withOpacity(0.1), borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.blueAccent.withOpacity(0.3))),
-                  child: const Text('الإجابة موجودة في شاشة الهوست السرية 📱', style: TextStyle(color: Colors.blueAccent, fontSize: 18, fontWeight: FontWeight.bold)),
+                  decoration: BoxDecoration(
+                    color: isAnswerRevealed ? Colors.blueAccent.withOpacity(0.2) : Colors.transparent,
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: isAnswerRevealed ? Colors.blueAccent : Colors.transparent),
+                  ),
+                  child: Text(
+                    isAnswerRevealed ? 'الإجابة: ${questions[currentQIndex]['a']}' : '--- الإجابة مخفية ---',
+                    style: TextStyle(color: isAnswerRevealed ? Colors.blueAccent : Colors.white38, fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
                 ),
                 const SizedBox(height: 20),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.white12),
-                  icon: const Icon(Icons.refresh, color: Colors.white),
-                  label: const Text('تغيير السؤال', style: TextStyle(color: Colors.white)),
-                  onPressed: () {
-                    setDialogState(() {
-                      currentQIndex = (currentQIndex + 1) % questions.length;
-                      HostServer.updateData(letter, questions[currentQIndex]['q']!, questions[currentQIndex]['a']!); // تحديث شاشة الهوست
-                    });
-                  },
+                
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.white12),
+                      icon: const Icon(Icons.refresh, color: Colors.white),
+                      label: const Text('تغيير السؤال', style: TextStyle(color: Colors.white)),
+                      onPressed: () {
+                        setDialogState(() {
+                          currentQIndex = (currentQIndex + 1) % questions.length;
+                          isAnswerRevealed = false; // إخفاء الإجابة عند تغيير السؤال
+                          HostServer.updateData(letter, questions[currentQIndex]['q']!, questions[currentQIndex]['a']!);
+                        });
+                      },
+                    ),
+                    const SizedBox(width: 15),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.blueGrey),
+                      icon: Icon(isAnswerRevealed ? Icons.visibility_off : Icons.visibility, color: Colors.white),
+                      label: Text(isAnswerRevealed ? 'إخفاء الإجابة' : 'إظهار الإجابة', style: const TextStyle(color: Colors.white)),
+                      onPressed: () {
+                        setDialogState(() { isAnswerRevealed = !isAnswerRevealed; });
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -540,27 +666,16 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
             actions: [
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15)),
-                onPressed: () { 
-                  Navigator.pop(context); 
-                  _makeMove(r, c, 1); 
-                  HostServer.updateData("-", "اختر حرفاً لتبدأ اللعبة", "-");
-                },
+                onPressed: () { Navigator.pop(context); _makeMove(r, c, 1); HostServer.updateData("-", "اختر حرفاً لتبدأ اللعبة", "-"); },
                 child: Text('فوز ${widget.team1Name}', style: const TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
               ),
               IconButton(
                 icon: const Icon(Icons.close, color: Colors.redAccent, size: 30),
-                onPressed: () {
-                  Navigator.pop(context);
-                  HostServer.updateData("-", "اختر حرفاً لتبدأ اللعبة", "-");
-                },
+                onPressed: () { Navigator.pop(context); HostServer.updateData("-", "اختر حرفاً لتبدأ اللعبة", "-"); },
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.green, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15)),
-                onPressed: () { 
-                  Navigator.pop(context); 
-                  _makeMove(r, c, 2); 
-                  HostServer.updateData("-", "اختر حرفاً لتبدأ اللعبة", "-");
-                },
+                onPressed: () { Navigator.pop(context); _makeMove(r, c, 2); HostServer.updateData("-", "اختر حرفاً لتبدأ اللعبة", "-"); },
                 child: Text('فوز ${widget.team2Name}', style: const TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
               ),
             ],
@@ -660,24 +775,17 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          IconButton(
-                            icon: const Icon(Icons.arrow_back, color: Colors.white54),
-                            onPressed: () => Navigator.pop(context),
-                          ),
+                          IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white54), onPressed: () => Navigator.pop(context)),
                           const Icon(Icons.swap_horiz, color: Colors.orange, size: 28),
                           const SizedBox(width: 8),
-                          Flexible(
-                            child: Text(widget.team1Name, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.orange, fontSize: 20, fontWeight: FontWeight.bold)),
-                          ),
+                          Flexible(child: Text(widget.team1Name, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.orange, fontSize: 20, fontWeight: FontWeight.bold))),
                         ],
                       ),
                     ),
                   ),
                   Expanded(
                     flex: 2,
-                    child: Center(
-                      child: Text('حروف مع ${widget.hostName}', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
-                    ),
+                    child: Center(child: Text('حروف مع ${widget.hostName}', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold))),
                   ),
                   Expanded(
                     flex: 1,
@@ -686,9 +794,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Flexible(
-                            child: Text(widget.team2Name, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.green, fontSize: 20, fontWeight: FontWeight.bold)),
-                          ),
+                          Flexible(child: Text(widget.team2Name, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.green, fontSize: 20, fontWeight: FontWeight.bold))),
                           const SizedBox(width: 8),
                           const Icon(Icons.swap_vert, color: Colors.green, size: 28),
                           const SizedBox(width: 15),
@@ -700,7 +806,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                 ],
               ),
             ),
-            
             Expanded(
               child: CustomPaint(
                 painter: BackgroundPainter(),
@@ -714,18 +819,12 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                         int c = index % cols;
                         double x = c * width + (r % 2 != 0 ? width / 2 : 0);
                         double y = r * height * 0.75;
-
                         return Positioned(
                           left: x,
                           top: y,
                           child: GestureDetector(
                             onTap: () => _showQuestionDialog(r, c),
-                            child: HexagonWidget(
-                              letter: currentLetters[index],
-                              state: board[r][c],
-                              width: width,
-                              height: height,
-                            ),
+                            child: HexagonWidget(letter: currentLetters[index], state: board[r][c], width: width, height: height),
                           ),
                         );
                       }),
@@ -747,23 +846,13 @@ class BackgroundPainter extends CustomPainter {
     final double w = size.width;
     final double h = size.height;
     final Offset center = Offset(w / 2, h / 2);
-
     final paintOrange = Paint()..color = Colors.orange.shade700;
     final paintGreen = Paint()..color = Colors.green.shade700;
-
-    final pathTop = Path()..moveTo(0, 0)..lineTo(w, 0)..lineTo(center.dx, center.dy)..close();
-    canvas.drawPath(pathTop, paintGreen);
-
-    final pathBottom = Path()..moveTo(0, h)..lineTo(w, h)..lineTo(center.dx, center.dy)..close();
-    canvas.drawPath(pathBottom, paintGreen);
-
-    final pathLeft = Path()..moveTo(0, 0)..lineTo(0, h)..lineTo(center.dx, center.dy)..close();
-    canvas.drawPath(pathLeft, paintOrange);
-
-    final pathRight = Path()..moveTo(w, 0)..lineTo(w, h)..lineTo(center.dx, center.dy)..close();
-    canvas.drawPath(pathRight, paintOrange);
+    canvas.drawPath(Path()..moveTo(0, 0)..lineTo(w, 0)..lineTo(center.dx, center.dy)..close(), paintGreen);
+    canvas.drawPath(Path()..moveTo(0, h)..lineTo(w, h)..lineTo(center.dx, center.dy)..close(), paintGreen);
+    canvas.drawPath(Path()..moveTo(0, 0)..lineTo(0, h)..lineTo(center.dx, center.dy)..close(), paintOrange);
+    canvas.drawPath(Path()..moveTo(w, 0)..lineTo(w, h)..lineTo(center.dx, center.dy)..close(), paintOrange);
   }
-
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
@@ -773,28 +862,17 @@ class HexagonWidget extends StatelessWidget {
   final int state;
   final double width;
   final double height;
-
   const HexagonWidget({super.key, required this.letter, required this.state, required this.width, required this.height});
-
   @override
   Widget build(BuildContext context) {
-    Color fillColor = Colors.white;
-    Color textColor = Colors.black;
-    
-    if (state == 1) { fillColor = Colors.orange; textColor = Colors.white; }
-    else if (state == 2) { fillColor = Colors.green; textColor = Colors.white; }
-
+    Color fillColor = state == 1 ? Colors.orange : (state == 2 ? Colors.green : Colors.white);
+    Color textColor = state == 0 ? Colors.black : Colors.white;
     return CustomPaint(
       size: Size(width, height),
       painter: HexagonPainter(fillColor),
       child: Container(
-        width: width,
-        height: height,
-        alignment: Alignment.center,
-        child: Text(
-          letter,
-          style: TextStyle(fontSize: state == 0 ? 30 : 36, color: textColor, fontWeight: FontWeight.bold),
-        ),
+        width: width, height: height, alignment: Alignment.center,
+        child: Text(letter, style: TextStyle(fontSize: state == 0 ? 30 : 36, color: textColor, fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -803,25 +881,12 @@ class HexagonWidget extends StatelessWidget {
 class HexagonPainter extends CustomPainter {
   final Color fillColor;
   HexagonPainter(this.fillColor);
-
   @override
   void paint(Canvas canvas, Size size) {
-    final path = Path();
-    path.moveTo(size.width * 0.5, 0);
-    path.lineTo(size.width, size.height * 0.25);
-    path.lineTo(size.width, size.height * 0.75);
-    path.lineTo(size.width * 0.5, size.height);
-    path.lineTo(0, size.height * 0.75);
-    path.lineTo(0, size.height * 0.25);
-    path.close();
-
-    final fillPaint = Paint()..color = fillColor..style = PaintingStyle.fill;
-    canvas.drawPath(path, fillPaint);
-
-    final borderPaint = Paint()..color = Colors.black..strokeWidth = 2.0..style = PaintingStyle.stroke;
-    canvas.drawPath(path, borderPaint);
+    final path = Path()..moveTo(size.width * 0.5, 0)..lineTo(size.width, size.height * 0.25)..lineTo(size.width, size.height * 0.75)..lineTo(size.width * 0.5, size.height)..lineTo(0, size.height * 0.75)..lineTo(0, size.height * 0.25)..close();
+    canvas.drawPath(path, Paint()..color = fillColor..style = PaintingStyle.fill);
+    canvas.drawPath(path, Paint()..color = Colors.black..strokeWidth = 2.0..style = PaintingStyle.stroke);
   }
-
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

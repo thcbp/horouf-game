@@ -34,7 +34,7 @@ class HostServer {
               <html lang="ar" dir="rtl">
               <head>
                 <meta charset="UTF-8">
-                <title>لوحة تحكم الهوست</title>
+                <title>لوحة تحكم المضيف</title>
                 <style>
                   body { font-family: Tahoma, sans-serif; background-color: #12121A; color: white; text-align: center; padding: 50px; }
                   .card { background-color: #1E1E2C; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: inline-block; min-width: 60%; }
@@ -57,8 +57,8 @@ class HostServer {
               </head>
               <body>
                 <div class="card">
-                  <h1>شاشة الهوست (سرية) 🤫</h1>
-                  <p style="color: #888;">هذه الشاشة لك فقط، لا تبثها بالديسكورد!</p>
+                  <h1>شاشة المضيف (سرية) 🤫</h1>
+                  <p style="color: #888;">هذه الشاشة لك فقط، تأكد من عدم مشاركتها!</p>
                   <div class="letter" id="letter">-</div>
                   <div class="question" id="question">في انتظار اختيار الحرف...</div>
                   <div class="answer" id="answer">-</div>
@@ -100,6 +100,8 @@ class DataManager {
       } else {
         await saveBank();
       }
+      // خلط الأسئلة عند فتح التطبيق
+      _shuffleAllQuestions();
     } catch (e) {
       print("Error loading bank: $e");
     }
@@ -113,10 +115,24 @@ class DataManager {
       print("Error saving bank: $e");
     }
   }
+
+  static void _shuffleAllQuestions() {
+    GlobalData.questionBank.forEach((key, list) {
+      list.shuffle(Random());
+    });
+    GlobalData.letterQuestionIndex.clear(); // تصفير مؤشر الأسئلة للبدء من جديد
+  }
+
+  // إعادة التعيين اليدوي (للعب مع مجموعة جديدة)
+  static void resetAndShuffleBank() {
+    _shuffleAllQuestions();
+  }
 }
 
 class GlobalData {
   static Map<String, List<Map<String, String>>> questionBank = {};
+  static Map<String, int> letterQuestionIndex = {}; // يحفظ ترتيب السؤال الحالي لكل حرف لعدم التكرار
+  
   static final List<String> allArabicLetters = [
     'أ','ب','ت','ث','ج','ح','خ','د','ذ','ر','ز','س','ش','ص',
     'ض','ط','ظ','ع','غ','ف','ق','ك','ل','م','ن','هـ','و','ي'
@@ -187,7 +203,7 @@ class MainMenuScreen extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(controller: hostController, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'اسم الهوست')),
+                TextField(controller: hostController, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'اسم المضيف')),
                 TextField(controller: t1Controller, style: const TextStyle(color: Colors.orange), decoration: const InputDecoration(labelText: 'اسم الفريق 1 (أفقي ↔)')),
                 TextField(controller: t2Controller, style: const TextStyle(color: Colors.green), decoration: const InputDecoration(labelText: 'اسم الفريق 2 (عمودي ↕)')),
               ],
@@ -215,6 +231,46 @@ class MainMenuScreen extends StatelessWidget {
           ],
         );
       }
+    );
+  }
+
+  void _showGuideDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E2C),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.lightbulb, color: Colors.amber, size: 30),
+            SizedBox(width: 10),
+            Text('دليل المضيف (كيف تلعب؟)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: const SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('1️⃣ الشاشة السرية:', style: TextStyle(color: Colors.orangeAccent, fontSize: 18, fontWeight: FontWeight.bold)),
+              Text('انسخ رابط المضيف من القائمة الرئيسية والصقه في متصفحك (مثل جوجل كروم). هذه الشاشة مخصصة لك وحدك لتقرأ منها الإجابات بسرعة.\n', style: TextStyle(color: Colors.white70, fontSize: 16)),
+              
+              Text('2️⃣ مشاركة الشاشة (Share Screen):', style: TextStyle(color: Colors.orangeAccent, fontSize: 18, fontWeight: FontWeight.bold)),
+              Text('في برنامج المحادثة، اختر خيار مشاركة "نافذة التطبيق فقط" (Application Window) واختر اللعبة. احذر من مشاركة الشاشة كاملة لكي لا يرى المتسابقون متصفحك السري.\n', style: TextStyle(color: Colors.white70, fontSize: 16)),
+              
+              Text('3️⃣ عدم تكرار الأسئلة:', style: TextStyle(color: Colors.orangeAccent, fontSize: 18, fontWeight: FontWeight.bold)),
+              Text('اللعبة مبرمجة لكي تحفظ الأسئلة التي ظهرت وتنتقل للسؤال التالي تلقائياً. إذا بدأت اللعب مع مجموعة أصدقاء جديدة، اذهب إلى "بنك الأسئلة" واضغط على أيقونة (🔀 خلط وإعادة تعيين) لتبدأ الأسئلة من جديد.', style: TextStyle(color: Colors.white70, fontSize: 16)),
+            ],
+          ),
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent),
+            onPressed: () => Navigator.pop(ctx), 
+            child: const Text('فهمت، شكراً!', style: TextStyle(color: Colors.white))
+          )
+        ],
+      )
     );
   }
 
@@ -257,7 +313,7 @@ class MainMenuScreen extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text('رابط الهوست:  http://localhost:8080', style: TextStyle(fontSize: 18, color: Colors.greenAccent)),
+                          const Text('رابط المضيف:  http://localhost:8080', style: TextStyle(fontSize: 18, color: Colors.greenAccent)),
                           const SizedBox(width: 15),
                           IconButton(
                             icon: const Icon(Icons.copy, color: Colors.white),
@@ -270,7 +326,7 @@ class MainMenuScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 50),
+                    const SizedBox(height: 40),
                     SizedBox(
                       width: 300, height: 60,
                       child: ElevatedButton.icon(
@@ -280,7 +336,7 @@ class MainMenuScreen extends StatelessWidget {
                         onPressed: () => _showStartSettings(context),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 15),
                     SizedBox(
                       width: 300, height: 60,
                       child: ElevatedButton.icon(
@@ -288,6 +344,16 @@ class MainMenuScreen extends StatelessWidget {
                         icon: const Icon(Icons.storage, size: 28, color: Colors.white70),
                         label: const Text('بنك الأسئلة', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
                         onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const QuestionBankScreen())),
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    SizedBox(
+                      width: 300, height: 60,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF232336), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
+                        icon: const Icon(Icons.help_outline, size: 28, color: Colors.orangeAccent),
+                        label: const Text('دليل المضيف', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                        onPressed: () => _showGuideDialog(context),
                       ),
                     ),
                   ],
@@ -392,15 +458,12 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
             onPressed: () async {
               Navigator.pop(ctx);
-              
               backupBank.clear();
               GlobalData.questionBank.forEach((k, v) {
                 backupBank[k] = List.from(v.map((item) => Map<String, String>.from(item)));
               });
               
-              setState(() {
-                GlobalData.questionBank.clear();
-              });
+              setState(() => GlobalData.questionBank.clear());
               await DataManager.saveBank();
               
               ScaffoldMessenger.of(context).showSnackBar(
@@ -412,16 +475,14 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
                     label: 'تراجع ↩️',
                     textColor: Colors.orangeAccent,
                     onPressed: () async {
-                      setState(() {
-                        GlobalData.questionBank = Map.from(backupBank);
-                      });
+                      setState(() => GlobalData.questionBank = Map.from(backupBank));
                       await DataManager.saveBank();
                     },
                   ),
                 )
               );
             },
-            child: const Text('نعم، احذف الكل', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), // <--- هذا هو الكود اللي كان ناقص!
+            child: const Text('نعم، احذف الكل', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           )
         ]
       )
@@ -482,6 +543,14 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
         title: const Text('بنك الأسئلة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.shuffle_on, color: Colors.greenAccent), 
+            tooltip: 'خلط وإعادة تعيين الأسئلة (للعب مع مجموعة جديدة)', 
+            onPressed: () {
+              DataManager.resetAndShuffleBank();
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم خلط الأسئلة! ستبدأ الآن بأسئلة جديدة للجميع.', style: TextStyle(fontSize: 16)), backgroundColor: Colors.green));
+            }
+          ),
           IconButton(icon: const Icon(Icons.data_object, color: Colors.blueAccent), tooltip: 'استيراد', onPressed: _showImportDialog),
           IconButton(icon: const Icon(Icons.delete_sweep, color: Colors.redAccent), tooltip: 'حذف الكل', onPressed: _clearAllQuestions),
         ],
@@ -586,14 +655,22 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     int index = r * cols + c;
     String letter = currentLetters[index];
     
-    List<Map<String, String>> questions = GlobalData.questionBank[letter] ?? [
-      {'q': 'لم تقم بإضافة أسئلة لحرف ( $letter ) في بنك الأسئلة!', 'a': 'لا يوجد'}
-    ];
+    List<Map<String, String>> questions = GlobalData.questionBank[letter] ?? [];
+    if (questions.isEmpty) {
+      questions = [{'q': 'لم تقم بإضافة أسئلة لحرف ( $letter ) في بنك الأسئلة!', 'a': 'لا يوجد'}];
+    }
 
-    int currentQIndex = 0;
+    // استدعاء مؤشر السؤال الحالي الخاص بهذا الحرف
+    int currentQIndex = GlobalData.letterQuestionIndex[letter] ?? 0;
+    if (currentQIndex >= questions.length) currentQIndex = 0; // حماية إضافية لو انتهت الأسئلة يرجع للأول
+
     bool isAnswerRevealed = false;
-    
     HostServer.updateData(letter, questions[currentQIndex]['q']!, questions[currentQIndex]['a']!);
+
+    // دالة لحفظ المؤشر الجديد للأسئلة
+    void saveNextQuestionIndex() {
+      GlobalData.letterQuestionIndex[letter] = (currentQIndex + 1) % questions.length;
+    }
 
     _showAnimatedDialog(
       StatefulBuilder(
@@ -639,6 +716,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                       onPressed: () {
                         setDialogState(() {
                           currentQIndex = (currentQIndex + 1) % questions.length;
+                          GlobalData.letterQuestionIndex[letter] = currentQIndex; // حفظ التقدم فوراً
                           isAnswerRevealed = false;
                           HostServer.updateData(letter, questions[currentQIndex]['q']!, questions[currentQIndex]['a']!);
                         });
@@ -661,7 +739,12 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
             actions: [
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15)),
-                onPressed: () { Navigator.pop(context); _makeMove(r, c, 1); HostServer.updateData("-", "اختر حرفاً لتبدأ اللعبة", "-"); },
+                onPressed: () { 
+                  saveNextQuestionIndex(); // الانتقال للسؤال التالي في المرة القادمة
+                  Navigator.pop(context); 
+                  _makeMove(r, c, 1); 
+                  HostServer.updateData("-", "اختر حرفاً لتبدأ اللعبة", "-"); 
+                },
                 child: Text('فوز ${widget.team1Name}', style: const TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
               ),
               IconButton(
@@ -670,7 +753,12 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.green, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15)),
-                onPressed: () { Navigator.pop(context); _makeMove(r, c, 2); HostServer.updateData("-", "اختر حرفاً لتبدأ اللعبة", "-"); },
+                onPressed: () { 
+                  saveNextQuestionIndex(); // الانتقال للسؤال التالي في المرة القادمة
+                  Navigator.pop(context); 
+                  _makeMove(r, c, 2); 
+                  HostServer.updateData("-", "اختر حرفاً لتبدأ اللعبة", "-"); 
+                },
                 child: Text('فوز ${widget.team2Name}', style: const TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
               ),
             ],

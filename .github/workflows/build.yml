@@ -1,0 +1,31 @@
+name: Build Windows Game
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Create Project & Build
+        run: |
+          flutter create horouf_game --platforms windows
+          Copy-Item -Path "main.dart" -Destination "horouf_game\lib\main.dart" -Force
+          cd horouf_game
+          flutter build windows --release
+
+      - name: Upload Windows Exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: Horouf_Game_Windows
+          path: horouf_game\build\windows\x64\runner\Release\*

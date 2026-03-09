@@ -23,19 +23,17 @@ jobs:
           Copy-Item -Path "main.dart" -Destination "horouf_game\lib\main.dart" -Force
           cd horouf_game
           
-          # إضافة المكتبات الجديدة
           flutter pub add window_manager
           flutter pub add file_picker
           
-          # نظام الأيقونة الذكي
           if (Test-Path "..\icon.png") {
-            Copy-Item -Path "..\icon.png" -Destination "icon.png" -Force
             flutter pub add dev:flutter_launcher_icons
-            echo "flutter_icons:" >> pubspec.yaml
-            echo "  image_path: `"icon.png`"" >> pubspec.yaml
-            echo "  windows:" >> pubspec.yaml
-            echo "    generate: true" >> pubspec.yaml
-            flutter pub run flutter_launcher_icons
+            Copy-Item -Path "..\icon.png" -Destination "icon.png" -Force
+            echo "flutter_icons:" > flutter_launcher_icons.yaml
+            echo "  image_path: `"icon.png`"" >> flutter_launcher_icons.yaml
+            echo "  windows:" >> flutter_launcher_icons.yaml
+            echo "    generate: true" >> flutter_launcher_icons.yaml
+            flutter pub run flutter_launcher_icons -f flutter_launcher_icons.yaml
           }
           
           flutter build windows --release

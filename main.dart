@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:file_picker/file_picker.dart'; // مكتبة رفع الملفات
 import 'dart:math';
 import 'dart:convert';
 import 'dart:io';
@@ -58,7 +59,7 @@ class HostServer {
               <body>
                 <div class="card">
                   <h1>شاشة المضيف (سرية) 🤫</h1>
-                  <p style="color: #888;">هذه الشاشة لك فقط، تأكد من عدم مشاركتها!</p>
+                  <p style="color: #888;">هذه الشاشة لك فقط، تأكد من عدم مشاركتها بالبث!</p>
                   <div class="letter" id="letter">-</div>
                   <div class="question" id="question">في انتظار اختيار الحرف...</div>
                   <div class="answer" id="answer">-</div>
@@ -100,7 +101,6 @@ class DataManager {
       } else {
         await saveBank();
       }
-      // خلط الأسئلة عند فتح التطبيق
       _shuffleAllQuestions();
     } catch (e) {
       print("Error loading bank: $e");
@@ -120,10 +120,9 @@ class DataManager {
     GlobalData.questionBank.forEach((key, list) {
       list.shuffle(Random());
     });
-    GlobalData.letterQuestionIndex.clear(); // تصفير مؤشر الأسئلة للبدء من جديد
+    GlobalData.letterQuestionIndex.clear();
   }
 
-  // إعادة التعيين اليدوي (للعب مع مجموعة جديدة)
   static void resetAndShuffleBank() {
     _shuffleAllQuestions();
   }
@@ -131,8 +130,7 @@ class DataManager {
 
 class GlobalData {
   static Map<String, List<Map<String, String>>> questionBank = {};
-  static Map<String, int> letterQuestionIndex = {}; // يحفظ ترتيب السؤال الحالي لكل حرف لعدم التكرار
-  
+  static Map<String, int> letterQuestionIndex = {}; 
   static final List<String> allArabicLetters = [
     'أ','ب','ت','ث','ج','ح','خ','د','ذ','ر','ز','س','ش','ص',
     'ض','ط','ظ','ع','غ','ف','ق','ك','ل','م','ن','هـ','و','ي'
@@ -147,7 +145,7 @@ void main() async {
   WindowOptions windowOptions = const WindowOptions(
     size: Size(1280, 720),
     center: true,
-    title: 'حروف',
+    title: 'لعبة الحروف', // تم تعديل اسم التطبيق
   );
   windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.show();
@@ -167,7 +165,7 @@ class HoroufGameApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'حروف',
+      title: 'لعبة الحروف',
       theme: ThemeData(
         brightness: Brightness.dark, 
         fontFamily: 'Tahoma',
@@ -253,13 +251,13 @@ class MainMenuScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text('1️⃣ الشاشة السرية:', style: TextStyle(color: Colors.orangeAccent, fontSize: 18, fontWeight: FontWeight.bold)),
-              Text('انسخ رابط المضيف من القائمة الرئيسية والصقه في متصفحك (مثل جوجل كروم). هذه الشاشة مخصصة لك وحدك لتقرأ منها الإجابات بسرعة.\n', style: TextStyle(color: Colors.white70, fontSize: 16)),
+              Text('انسخ رابط المضيف من القائمة الرئيسية والصقه في متصفحك. هذه الشاشة مخصصة لك وحدك لتقرأ منها الإجابات بسرعة.\n', style: TextStyle(color: Colors.white70, fontSize: 16)),
               
               Text('2️⃣ مشاركة الشاشة (Share Screen):', style: TextStyle(color: Colors.orangeAccent, fontSize: 18, fontWeight: FontWeight.bold)),
-              Text('في برنامج المحادثة، اختر خيار مشاركة "نافذة التطبيق فقط" (Application Window) واختر اللعبة. احذر من مشاركة الشاشة كاملة لكي لا يرى المتسابقون متصفحك السري.\n', style: TextStyle(color: Colors.white70, fontSize: 16)),
+              Text('في برنامج الديسكورد، اختر خيار مشاركة "نافذة التطبيق فقط" (Application Window) واختر اللعبة. أو وسّع الشاشة عبر HDMI.\n', style: TextStyle(color: Colors.white70, fontSize: 16)),
               
-              Text('3️⃣ عدم تكرار الأسئلة:', style: TextStyle(color: Colors.orangeAccent, fontSize: 18, fontWeight: FontWeight.bold)),
-              Text('اللعبة مبرمجة لكي تحفظ الأسئلة التي ظهرت وتنتقل للسؤال التالي تلقائياً. إذا بدأت اللعب مع مجموعة أصدقاء جديدة، اذهب إلى "بنك الأسئلة" واضغط على أيقونة (🔀 خلط وإعادة تعيين) لتبدأ الأسئلة من جديد.', style: TextStyle(color: Colors.white70, fontSize: 16)),
+              Text('3️⃣ تعديل الأخطاء باللوحة:', style: TextStyle(color: Colors.orangeAccent, fontSize: 18, fontWeight: FontWeight.bold)),
+              Text('إذا أعطيت نقطة لفريق بالخطأ، فقط اضغط على الخلية الملونة مرة أخرى وستظهر لك خيارات تعديلها أو مسحها.\n', style: TextStyle(color: Colors.white70, fontSize: 16)),
             ],
           ),
         ),
@@ -304,9 +302,8 @@ class MainMenuScreen extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('حـــروف', style: TextStyle(fontSize: 60, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 5)),
+                    const Text('لعبة الحـروف', style: TextStyle(fontSize: 60, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 2)),
                     const SizedBox(height: 10),
-                    
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
                       decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(10)),
@@ -489,6 +486,40 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
     );
   }
 
+  // إضافة ميزة استيراد الملف الجاهز
+  void _importFromJsonFile() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+      );
+
+      if (result != null) {
+        File file = File(result.files.single.path!);
+        String contents = await file.readAsString();
+        Map<String, dynamic> decoded = jsonDecode(contents);
+        
+        setState(() {
+          decoded.forEach((key, value) {
+            if (!GlobalData.questionBank.containsKey(key)) GlobalData.questionBank[key] = [];
+            for (var item in value) {
+              GlobalData.questionBank[key]!.add({'q': item['q'].toString(), 'a': item['a'].toString()});
+            }
+          });
+        });
+        await DataManager.saveBank();
+        if (mounted) {
+          Navigator.pop(context); // إغلاق نافذة الاستيراد
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم استيراد الملف الجاهز بنجاح!'), backgroundColor: Colors.green));
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('خطأ في قراءة الملف! تأكد من أنه ملف JSON سليم.'), backgroundColor: Colors.red));
+      }
+    }
+  }
+
   void _showImportDialog() {
     TextEditingController jsonController = TextEditingController();
     showDialog(
@@ -496,20 +527,39 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: const Color(0xFF1E1E2C),
-          title: const Text('استيراد ذكي (JSON)', style: TextStyle(color: Colors.white)),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: TextField(
-              controller: jsonController,
-              maxLines: 10,
-              style: const TextStyle(color: Colors.white70, fontFamily: 'monospace'),
-              decoration: const InputDecoration(hintText: 'الصق كود JSON هنا...', border: OutlineInputBorder()),
-            ),
+          title: const Text('استيراد الأسئلة', style: TextStyle(color: Colors.white)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: double.maxFinite,
+                child: TextField(
+                  controller: jsonController,
+                  maxLines: 7,
+                  style: const TextStyle(color: Colors.white70, fontFamily: 'monospace'),
+                  decoration: const InputDecoration(hintText: 'الصق كود JSON هنا...', border: OutlineInputBorder()),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 15),
+                child: Text('--- أو ---', style: TextStyle(color: Colors.white54)),
+              ),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF3E3E5C), padding: const EdgeInsets.symmetric(vertical: 15)),
+                  icon: const Icon(Icons.folder_open, color: Colors.white),
+                  label: const Text('استيراد من ملف JSON جاهز', style: TextStyle(color: Colors.white, fontSize: 16)),
+                  onPressed: _importFromJsonFile,
+                ),
+              ),
+            ],
           ),
           actions: [
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
               onPressed: () async {
+                if (jsonController.text.isEmpty) return;
                 try {
                   Map<String, dynamic> decoded = jsonDecode(jsonController.text);
                   setState(() {
@@ -524,10 +574,10 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم الاستيراد بنجاح!')));
                 } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('خطأ في صيغة الـ JSON!'), backgroundColor: Colors.red));
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('خطأ في صيغة الـ JSON المنسوخة!'), backgroundColor: Colors.red));
                 }
               },
-              child: const Text('استيراد وحفظ', style: TextStyle(color: Colors.white)),
+              child: const Text('حفظ النص المنسوخ', style: TextStyle(color: Colors.white)),
             )
           ],
         );
@@ -637,6 +687,34 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     HostServer.updateData("-", "اختر حرفاً لتبدأ اللعبة", "-");
   }
 
+  void _confirmResetGame() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E2C),
+        title: const Row(
+          children: [
+            Icon(Icons.refresh, color: Colors.redAccent, size: 30),
+            SizedBox(width: 10),
+            Text('تأكيد إعادة الجولة', style: TextStyle(color: Colors.white)),
+          ],
+        ),
+        content: const Text('هل أنت متأكد أنك تريد تصفير اللوحة وبدء جولة جديدة؟', style: TextStyle(color: Colors.white70, fontSize: 18)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء', style: TextStyle(color: Colors.white54))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () {
+              Navigator.pop(ctx);
+              _resetGame();
+            },
+            child: const Text('نعم، ابدأ من جديد', style: TextStyle(color: Colors.white)),
+          )
+        ],
+      )
+    );
+  }
+
   void _showAnimatedDialog(Widget dialogContent) {
     showGeneralDialog(
       context: context,
@@ -650,8 +728,52 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     );
   }
 
+  // معالجة الضغط على أي خلية (سواء بيضاء أو ملونة)
+  void _handleHexagonTap(int r, int c) {
+    if (board[r][c] == 0) {
+      _showQuestionDialog(r, c);
+    } else {
+      _showEditHexagonDialog(r, c);
+    }
+  }
+
+  // نافذة تعديل الخلية الملونة (لتصحيح الأخطاء)
+  void _showEditHexagonDialog(int r, int c) {
+    int index = r * cols + c;
+    String letter = currentLetters[index];
+
+    _showAnimatedDialog(
+      AlertDialog(
+        backgroundColor: const Color(0xFF1E1E2C),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: Colors.white24)),
+        title: Text('تعديل خلية الحرف ( $letter )', style: const TextStyle(color: Colors.white), textAlign: TextAlign.center),
+        content: const Text('لقد أعطيت النقطة لفريق بالخطأ؟\nاختر ماذا تريد أن تفعل بهذه الخلية الآن:', style: TextStyle(color: Colors.white70, fontSize: 18), textAlign: TextAlign.center),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+            onPressed: () { Navigator.pop(context); _makeMove(r, c, 1); },
+            child: Text('تحويل لـ ${widget.team1Name}', style: const TextStyle(color: Colors.white)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () {
+              Navigator.pop(context);
+              setState(() => board[r][c] = 0); // مسح الخلية وعودتها للون الأبيض
+            },
+            child: const Text('مسح (إعادة تعيين)', style: TextStyle(color: Colors.white)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            onPressed: () { Navigator.pop(context); _makeMove(r, c, 2); },
+            child: Text('تحويل لـ ${widget.team2Name}', style: const TextStyle(color: Colors.white)),
+          ),
+        ],
+      )
+    );
+  }
+
   void _showQuestionDialog(int r, int c) {
-    if (board[r][c] != 0) return;
     int index = r * cols + c;
     String letter = currentLetters[index];
     
@@ -660,14 +782,12 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
       questions = [{'q': 'لم تقم بإضافة أسئلة لحرف ( $letter ) في بنك الأسئلة!', 'a': 'لا يوجد'}];
     }
 
-    // استدعاء مؤشر السؤال الحالي الخاص بهذا الحرف
     int currentQIndex = GlobalData.letterQuestionIndex[letter] ?? 0;
-    if (currentQIndex >= questions.length) currentQIndex = 0; // حماية إضافية لو انتهت الأسئلة يرجع للأول
+    if (currentQIndex >= questions.length) currentQIndex = 0; 
 
     bool isAnswerRevealed = false;
     HostServer.updateData(letter, questions[currentQIndex]['q']!, questions[currentQIndex]['a']!);
 
-    // دالة لحفظ المؤشر الجديد للأسئلة
     void saveNextQuestionIndex() {
       GlobalData.letterQuestionIndex[letter] = (currentQIndex + 1) % questions.length;
     }
@@ -716,7 +836,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                       onPressed: () {
                         setDialogState(() {
                           currentQIndex = (currentQIndex + 1) % questions.length;
-                          GlobalData.letterQuestionIndex[letter] = currentQIndex; // حفظ التقدم فوراً
+                          GlobalData.letterQuestionIndex[letter] = currentQIndex; 
                           isAnswerRevealed = false;
                           HostServer.updateData(letter, questions[currentQIndex]['q']!, questions[currentQIndex]['a']!);
                         });
@@ -740,7 +860,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15)),
                 onPressed: () { 
-                  saveNextQuestionIndex(); // الانتقال للسؤال التالي في المرة القادمة
+                  saveNextQuestionIndex(); 
                   Navigator.pop(context); 
                   _makeMove(r, c, 1); 
                   HostServer.updateData("-", "اختر حرفاً لتبدأ اللعبة", "-"); 
@@ -754,7 +874,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.green, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15)),
                 onPressed: () { 
-                  saveNextQuestionIndex(); // الانتقال للسؤال التالي في المرة القادمة
+                  saveNextQuestionIndex(); 
                   Navigator.pop(context); 
                   _makeMove(r, c, 2); 
                   HostServer.updateData("-", "اختر حرفاً لتبدأ اللعبة", "-"); 
@@ -868,7 +988,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                   ),
                   Expanded(
                     flex: 2,
-                    child: Center(child: Text('حروف مع ${widget.hostName}', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold))),
+                    child: Center(child: Text('لعبة الحروف مع ${widget.hostName}', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold))),
                   ),
                   Expanded(
                     flex: 1,
@@ -881,7 +1001,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                           const SizedBox(width: 8),
                           const Icon(Icons.swap_vert, color: Colors.green, size: 28),
                           const SizedBox(width: 15),
-                          IconButton(icon: const Icon(Icons.refresh, color: Colors.redAccent), onPressed: _resetGame),
+                          IconButton(icon: const Icon(Icons.refresh, color: Colors.redAccent), onPressed: _confirmResetGame), // تم تفعيل التأكيد هنا
                         ],
                       ),
                     ),
@@ -906,7 +1026,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                           left: x,
                           top: y,
                           child: GestureDetector(
-                            onTap: () => _showQuestionDialog(r, c),
+                            onTap: () => _handleHexagonTap(r, c), // الدالة الجديدة لفتح التعديل أو السؤال
                             child: HexagonWidget(letter: currentLetters[index], state: board[r][c], width: width, height: height),
                           ),
                         );

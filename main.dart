@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // مكتبة النسخ للحافظة
+import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
 import 'dart:math';
 import 'dart:convert';
@@ -98,7 +98,7 @@ class DataManager {
           }
         });
       } else {
-        await saveBank(); // إنشاء الملف لأول مرة
+        await saveBank();
       }
     } catch (e) {
       print("Error loading bank: $e");
@@ -251,7 +251,6 @@ class MainMenuScreen extends StatelessWidget {
                     const Text('حـــروف', style: TextStyle(fontSize: 60, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 5)),
                     const SizedBox(height: 10),
                     
-                    // رابط الهوست مع زر النسخ
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
                       decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(10)),
@@ -310,7 +309,7 @@ class QuestionBankScreen extends StatefulWidget {
 }
 
 class _QuestionBankScreenState extends State<QuestionBankScreen> {
-  Map<String, List<Map<String, String>>> backupBank = {}; // الذاكرة الاحتياطية للتراجع
+  Map<String, List<Map<String, String>>> backupBank = {};
 
   void _showQuestionDialog({String? letter, int? index, String? initialQ, String? initialA}) {
     String selectedLetter = letter ?? 'أ';
@@ -394,7 +393,6 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
             onPressed: () async {
               Navigator.pop(ctx);
               
-              // أخذ نسخة احتياطية قبل الحذف للتراجع
               backupBank.clear();
               GlobalData.questionBank.forEach((k, v) {
                 backupBank[k] = List.from(v.map((item) => Map<String, String>.from(item)));
@@ -405,7 +403,6 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
               });
               await DataManager.saveBank();
               
-              // إشعار مع زر التراجع
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: const Text('تم مسح جميع الأسئلة بنجاح!', style: TextStyle(fontSize: 16)),
@@ -423,7 +420,8 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
                   ),
                 )
               );
-            }
+            },
+            child: const Text('نعم، احذف الكل', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), // <--- هذا هو الكود اللي كان ناقص!
           )
         ]
       )
@@ -593,7 +591,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     ];
 
     int currentQIndex = 0;
-    bool isAnswerRevealed = false; // التحكم بظهور الإجابة في الشاشة الرئيسية
+    bool isAnswerRevealed = false;
     
     HostServer.updateData(letter, questions[currentQIndex]['q']!, questions[currentQIndex]['a']!);
 
@@ -617,8 +615,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                   style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold, height: 1.5),
                 ),
                 const SizedBox(height: 20),
-                
-                // الإجابة (تكون مخفية افتراضياً، وتظهر إذا ضغط الهوست زر الإظهار)
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   padding: const EdgeInsets.all(15),
@@ -633,7 +629,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -644,7 +639,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                       onPressed: () {
                         setDialogState(() {
                           currentQIndex = (currentQIndex + 1) % questions.length;
-                          isAnswerRevealed = false; // إخفاء الإجابة عند تغيير السؤال
+                          isAnswerRevealed = false;
                           HostServer.updateData(letter, questions[currentQIndex]['q']!, questions[currentQIndex]['a']!);
                         });
                       },

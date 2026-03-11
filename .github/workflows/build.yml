@@ -1,23 +1,4 @@
-name: Build Windows Game
-
-on:
-  push:
-    branches: [ main ]
-
-jobs:
-  build:
-    runs-on: windows-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-
-      - name: Create Project & Build
+- name: Create Project & Build
         run: |
           flutter create horouf_game --platforms windows
           Copy-Item -Path "main.dart" -Destination "horouf_game\lib\main.dart" -Force
@@ -26,6 +7,7 @@ jobs:
           flutter pub add window_manager
           flutter pub add file_picker
           
+          # دمج الأيقونة
           if (Test-Path "..\icon.png") {
             flutter pub add dev:flutter_launcher_icons
             Copy-Item -Path "..\icon.png" -Destination "icon.png" -Force
@@ -36,10 +18,16 @@ jobs:
             flutter pub run flutter_launcher_icons -f flutter_launcher_icons.yaml
           }
           
+          # دمج الخط الجديد
+          if (Test-Path "..\hacen.ttf") {
+            mkdir assets\fonts
+            Copy-Item -Path "..\hacen.ttf" -Destination "assets\fonts\hacen.ttf" -Force
+            # إضافة الخط لملف pubspec.yaml
+            echo "flutter:" >> pubspec.yaml
+            echo "  fonts:" >> pubspec.yaml
+            echo "    - family: Hacen" >> pubspec.yaml
+            echo "      fonts:" >> pubspec.yaml
+            echo "        - asset: assets/fonts/hacen.ttf" >> pubspec.yaml
+          }
+          
           flutter build windows --release
-
-      - name: Upload Windows Exe
-        uses: actions/upload-artifact@v4
-        with:
-          name: Horouf_Game_Windows
-          path: horouf_game\build\windows\x64\runner\Release\*

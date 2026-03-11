@@ -185,8 +185,8 @@ class HoroufGameApp extends StatelessWidget {
       title: 'لعبة الحروف',
       theme: ThemeData(
         brightness: Brightness.dark, 
-        fontFamily: 'Hacen', // تم دمج الخط هنا
-        scaffoldBackgroundColor: const Color(0xFF0F0F1A), // لون خلفية أعمق وأكثر عصرية
+        fontFamily: 'Hacen', 
+        scaffoldBackgroundColor: const Color(0xFF0F0F1A), 
         colorScheme: const ColorScheme.dark(
           primary: Colors.blueAccent,
           surface: Color(0xFF1A1A2E),
@@ -419,7 +419,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
               return Card(
                 color: const Color(0xFF252538),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.white10)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15), side: const BorderSide(color: Colors.white10)), // هنا تم إصلاح المشكلة
                 margin: const EdgeInsets.only(bottom: 15),
                 child: ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
@@ -662,7 +662,7 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.shuffle_on, color: Colors.greenAccent, size: 28), 
-            tooltip: 'خلط وإعادة تعيين الأسئلة (للعب مع مجموعة جديدة)', 
+            tooltip: 'خلط وإعادة تعيين الأسئلة', 
             onPressed: () {
               DataManager.resetAndShuffleBank();
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم خلط الأسئلة! ستبدأ الآن بأسئلة جديدة للجميع.', style: TextStyle(fontSize: 16, fontFamily: 'Hacen')), backgroundColor: Colors.green));
@@ -778,7 +778,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     showGeneralDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.85), // تعتيم أقوى للخلفية
+      barrierColor: Colors.black.withOpacity(0.85), 
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, anim1, anim2) => dialogContent,
       transitionBuilder: (context, anim1, anim2, child) {
@@ -859,13 +859,11 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
             backgroundColor: const Color(0xFF1A1A2E),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30), side: const BorderSide(color: Colors.blueAccent, width: 2)),
             contentPadding: const EdgeInsets.all(30),
-            // جعل النافذة أعرض وأفخم
             content: SizedBox(
               width: 600, 
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // الأيقونة الدائرية للحرف
                   Container(
                     padding: const EdgeInsets.all(25),
                     decoration: BoxDecoration(
@@ -1018,7 +1016,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // تم تكبير حجم الخلايا هنا بشكل ملحوظ
     double radius = 62.0; 
     double width = radius * 1.732;
     double height = radius * 2;
@@ -1033,7 +1030,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
             Container(
               height: 90,
               padding: const EdgeInsets.symmetric(horizontal: 30),
-              color: const Color(0xFF1A1A2E), // شريط علوي أعمق
+              color: const Color(0xFF1A1A2E), 
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -1108,7 +1105,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
   }
 }
 
-// تصميم الخلفية أصبح أنعم وأكثر عصرية ولا يغطي على اللوحة
 class BackgroundPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -1116,7 +1112,6 @@ class BackgroundPainter extends CustomPainter {
     final double h = size.height;
     final Offset center = Offset(w / 2, h / 2);
     
-    // ألوان خلفية هادئة (شبه شفافة) تعطي انطباع عميق
     final paintOrange = Paint()..color = const Color(0xFFCC5500).withOpacity(0.15);
     final paintGreen = Paint()..color = const Color(0xFF004D40).withOpacity(0.15);
     
@@ -1129,7 +1124,6 @@ class BackgroundPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-// تصميم الخلية السداسية
 class HexagonWidget extends StatelessWidget {
   final String letter;
   final int state;
@@ -1139,7 +1133,6 @@ class HexagonWidget extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    // ألوان نيون عصرية ومريحة للعين داخل الخلايا
     Color fillColor = state == 1 ? const Color(0xFFE67E22) : (state == 2 ? const Color(0xFF4CAF50) : const Color(0xFFE0E0E0));
     Color textColor = state == 0 ? const Color(0xFF1A1A2E) : Colors.white;
     
@@ -1148,7 +1141,6 @@ class HexagonWidget extends StatelessWidget {
       painter: HexagonPainter(fillColor),
       child: Container(
         width: width, height: height, alignment: Alignment.center, 
-        // تكبير الخط داخل الخلية ليناسب الحجم الجديد
         child: Text(letter, style: TextStyle(fontSize: state == 0 ? 48 : 52, color: textColor, fontWeight: FontWeight.bold))
       ),
     );
@@ -1162,10 +1154,7 @@ class HexagonPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final path = Path()..moveTo(size.width * 0.5, 0)..lineTo(size.width, size.height * 0.25)..lineTo(size.width, size.height * 0.75)..lineTo(size.width * 0.5, size.height)..lineTo(0, size.height * 0.75)..lineTo(0, size.height * 0.25)..close();
     
-    // تعبئة الخلية باللون
     canvas.drawPath(path, Paint()..color = fillColor..style = PaintingStyle.fill);
-    
-    // رسم إطار فضي خفيف وناعم بدل الأسود القاسي
     canvas.drawPath(path, Paint()..color = Colors.white.withOpacity(0.3)..strokeWidth = 3.0..style = PaintingStyle.stroke);
   }
   @override

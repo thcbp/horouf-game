@@ -39,7 +39,6 @@ jobs:
           if (Test-Path "..\hacen.ttf") {
             mkdir assets\fonts
             Copy-Item -Path "..\hacen.ttf" -Destination "assets\fonts\hacen.ttf" -Force
-            echo "flutter:" >> pubspec.yaml
             echo "  fonts:" >> pubspec.yaml
             echo "    - family: Hacen" >> pubspec.yaml
             echo "      fonts:" >> pubspec.yaml

@@ -1058,15 +1058,17 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     );
   }
 
-  // اللوجو المائل
+  // اللوجو المائل والأيقوني (تم التكبير)
   Widget buildHostTitle() {
     return Transform.rotate(
       angle: -0.05, 
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('حروف', style: GoogleFonts.lalezar(fontSize: 85, color: const Color(0xFFFFD700), height: 0.8, shadows: [const Shadow(color: Colors.black87, offset: Offset(3, 4), blurRadius: 0)])),
-          Text(widget.hostName, style: GoogleFonts.lalezar(fontSize: 75, color: const Color(0xFFFF3D00), height: 0.8, shadows: [const Shadow(color: Colors.black87, offset: Offset(3, 4), blurRadius: 0)])),
+          // تم تكبير الخط من 85 إلى 100
+          Text('حروف', style: GoogleFonts.lalezar(fontSize: 100, color: const Color(0xFFFFD700), height: 0.8, shadows: [const Shadow(color: Colors.black87, offset: Offset(3, 4), blurRadius: 0)])),
+          // تم تكبير الخط من 75 إلى 85
+          Text(widget.hostName, style: GoogleFonts.lalezar(fontSize: 85, color: const Color(0xFFFF3D00), height: 0.8, shadows: [const Shadow(color: Colors.black87, offset: Offset(3, 4), blurRadius: 0)])),
         ],
       ),
     );
@@ -1081,14 +1083,15 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
           children: [
             Column(
               children: [
-                // الشريط العلوي (تم زيادة الشفافية لتصبح 40% وتفريغ المنتصف)
+                // الشريط العلوي (شفافية 40% وتم تفريغ المنتصف تماماً)
                 Container(
                   height: 70,
                   padding: const EdgeInsets.symmetric(horizontal: 30),
-                  color: const Color(0x9912121A), // 0x99 تعني شفافية 40%
+                  color: const Color(0x9912121A), // 0x99 تعني 60% معتم و 40% شفاف
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      // الفريق الأول
                       Expanded(
                         flex: 1,
                         child: Row(
@@ -1099,23 +1102,25 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                           ],
                         ),
                       ),
-                      Expanded(
+                      // مساحة فارغة في المنتصف لترك اللوجو يتنفس
+                      const Expanded(
                         flex: 1,
-                        child: Center(
-                          child: IconButton(
-                            icon: const Icon(Icons.settings, color: Colors.white, size: 35),
-                            tooltip: 'تغيير ألوان الفرق',
-                            onPressed: _showGameSettings, 
-                          ),
-                        ),
+                        child: SizedBox(),
                       ),
+                      // الفريق الثاني + زر الإعدادات + زر التصفير
                       Expanded(
                         flex: 1,
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             Text(widget.team2Name, style: TextStyle(color: colorTeam2, fontSize: 28, fontWeight: FontWeight.bold)),
-                            const SizedBox(width: 20),
+                            const SizedBox(width: 15),
+                            IconButton(
+                              icon: const Icon(Icons.settings, color: Colors.white, size: 35),
+                              tooltip: 'تغيير ألوان الفرق',
+                              onPressed: _showGameSettings, 
+                            ),
+                            const SizedBox(width: 5),
                             IconButton(
                               icon: const Icon(Icons.refresh, color: Colors.redAccent, size: 35), 
                               onPressed: () {
@@ -1139,10 +1144,10 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                     ],
                   ),
                 ),
+                // منطقة اللعب الديناميكية
                 Expanded(
                   child: LayoutBuilder(
                     builder: (context, constraints) {
-                      // الحفاظ على الحجم الضخم للوحة كما طلبت
                       double maxR_byHeight = (constraints.maxHeight * 0.76) / 8.0; 
                       double maxR_byWidth = (constraints.maxWidth * 0.96) / 9.526;
                       double radius = min(maxR_byHeight, maxR_byWidth);
@@ -1165,8 +1170,9 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                               painter: HexagonPatternPainter(color: Colors.white, opacity: 0.15),
                             ),
                           ),
+                          // اللوحة تم إنزالها قليلاً للأسفل لحمايتها من اللوجو الكبير
                           Align(
-                            alignment: const Alignment(0.0, 0.10), 
+                            alignment: const Alignment(0.0, 0.15), 
                             child: SizedBox(
                               width: totalWidth,
                               height: totalHeight,
@@ -1202,13 +1208,13 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                 ),
               ],
             ),
-            // ترويسة اللوجو عائمة (Positioned) ومرفوعة لتتداخل مع حافة الشريط الأسود
+            // اللوجو المرفوع والمكبر (يطفو فوق الشريط العلوي ولا يغطي اللوحة)
             Positioned(
-              top: 15, // رفعها لتلامس الجزء السفلي من الشريط الأسود العلوي
+              top: 5, // تم الرفع ليتداخل مع الشريط الأسود العلوي
               left: 0, 
               right: 0,
               child: Center(
-                child: IgnorePointer( // لكي لا تعيق الضغط على زر الإعدادات
+                child: IgnorePointer(
                   child: buildHostTitle(),
                 ),
               ),

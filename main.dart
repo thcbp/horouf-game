@@ -154,7 +154,7 @@ class GlobalData {
   ];
 }
 
-// =================== أداة رسم العلامة المائية القوية ===================
+// =================== أداة رسم العلامة المائية ===================
 class HexagonPatternPainter extends CustomPainter {
   final Color color;
   final double opacity;
@@ -353,7 +353,6 @@ class MainMenuScreen extends StatelessWidget {
       backgroundColor: const Color(0xFF673AB7), 
       body: Stack(
         children: [
-          // العلامة المائية المحسنة (تعمل دائماً)
           Positioned.fill(
             child: CustomPaint(
               painter: HexagonPatternPainter(color: Colors.white, opacity: 0.08),
@@ -378,7 +377,6 @@ class MainMenuScreen extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // لوجو مرح ومائل
                   Transform.rotate(
                     angle: -0.05,
                     child: Text('لعبة الحروف', style: GoogleFonts.lalezar(fontSize: 85, color: Colors.white, shadows: [const Shadow(color: Color(0xFF311B92), blurRadius: 0, offset: Offset(4, 5))])),
@@ -449,7 +447,7 @@ class MainMenuScreen extends StatelessWidget {
   }
 }
 
-// =================== شاشة السجل (النسخة الكاملة) ===================
+// =================== شاشة السجل الكاملة ===================
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
   @override
@@ -544,7 +542,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 }
 
-// =================== بنك الأسئلة (النسخة الكاملة) ===================
+// =================== بنك الأسئلة الكامل ===================
 class QuestionBankScreen extends StatefulWidget {
   const QuestionBankScreen({super.key});
   @override
@@ -1060,7 +1058,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     );
   }
 
-  // اللوجو المائل والأيقوني بأسلوب التلفزيون (تم حذف كلمة "مـع")
+  // اللوجو المائل
   Widget buildHostTitle() {
     return Transform.rotate(
       angle: -0.05, 
@@ -1079,129 +1077,140 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF1E1E2C), 
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
-            Container(
-              height: 70,
-              padding: const EdgeInsets.symmetric(horizontal: 30),
-              color: const Color(0xFF12121A), 
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: Row(
-                      children: [
-                        IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white54, size: 30), onPressed: () => Navigator.pop(context)),
-                        const SizedBox(width: 10),
-                        Text(widget.team1Name, style: TextStyle(color: colorTeam1, fontSize: 28, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Center(
-                      child: IconButton(
-                        icon: const Icon(Icons.settings, color: Colors.white, size: 35),
-                        tooltip: 'تغيير ألوان الفرق',
-                        onPressed: _showGameSettings, 
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(widget.team2Name, style: TextStyle(color: colorTeam2, fontSize: 28, fontWeight: FontWeight.bold)),
-                        const SizedBox(width: 20),
-                        IconButton(
-                          icon: const Icon(Icons.refresh, color: Colors.redAccent, size: 35), 
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (ctx) => AlertDialog(
-                                backgroundColor: const Color(0xFF4A148C),
-                                title: const Text('إعادة الجولة', style: TextStyle(color: Colors.white)),
-                                content: const Text('هل تريد تصفير اللوحة؟', style: TextStyle(color: Colors.white)),
-                                actions: [
-                                  TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
-                                  ElevatedButton(onPressed: () { Navigator.pop(ctx); _resetGame(); }, style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent), child: const Text('تصفير', style: TextStyle(color: Colors.white))),
-                                ]
-                              )
-                            );
-                          }
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  // تم رفع النسبة لتكبير اللوحة بفضل المساحة اللي كسبناها
-                  double maxR_byHeight = (constraints.maxHeight * 0.76) / 8.0; 
-                  double maxR_byWidth = (constraints.maxWidth * 0.96) / 9.526;
-                  double radius = min(maxR_byHeight, maxR_byWidth);
-                  
-                  if (radius < 90.0) radius = 105.0; 
-                  radius = radius.clamp(60.0, 145.0);
-
-                  double width = radius * 1.732;
-                  double height = radius * 2;
-                  double totalWidth = cols * width + (width / 2);
-                  double totalHeight = (rows * height * 0.75) + (height * 0.25);
-
-                  return Stack(
+            Column(
+              children: [
+                // الشريط العلوي (تم زيادة الشفافية لتصبح 40% وتفريغ المنتصف)
+                Container(
+                  height: 70,
+                  padding: const EdgeInsets.symmetric(horizontal: 30),
+                  color: const Color(0x9912121A), // 0x99 تعني شفافية 40%
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Positioned.fill(
-                        child: CustomPaint(painter: FourTrianglesPainter(colorTeam1, colorTeam2)),
-                      ),
-                      Positioned.fill(
-                        child: CustomPaint(
-                          painter: HexagonPatternPainter(color: Colors.white, opacity: 0.15),
+                      Expanded(
+                        flex: 1,
+                        child: Row(
+                          children: [
+                            IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white54, size: 30), onPressed: () => Navigator.pop(context)),
+                            const SizedBox(width: 10),
+                            Text(widget.team1Name, style: TextStyle(color: colorTeam1, fontSize: 28, fontWeight: FontWeight.bold)),
+                          ],
                         ),
                       ),
-                      Positioned(
-                        top: 20, left: 0, right: 0,
-                        child: Center(child: buildHostTitle()),
-                      ),
-                      // تم رفع اللوحة لتتمركز بشكل مثالي
-                      Align(
-                        alignment: const Alignment(0.0, 0.10), 
-                        child: SizedBox(
-                          width: totalWidth,
-                          height: totalHeight,
-                          child: Stack(
-                            children: List.generate(rows * cols, (index) {
-                              int r = index ~/ cols;
-                              int c = index % cols;
-                              double x = c * width + (r % 2 != 0 ? width / 2 : 0);
-                              double y = r * height * 0.75;
-                              return Positioned(
-                                left: x, top: y,
-                                child: GestureDetector(
-                                  onTap: () => _handleHexagonTap(r, c),
-                                  child: HexagonWidget(
-                                    letter: currentLetters[index], 
-                                    state: board[r][c], 
-                                    width: width, 
-                                    height: height,
-                                    radius: radius, 
-                                    c1: colorTeam1,
-                                    c2: colorTeam2,
-                                  ),
-                                ),
-                              );
-                            }),
+                      Expanded(
+                        flex: 1,
+                        child: Center(
+                          child: IconButton(
+                            icon: const Icon(Icons.settings, color: Colors.white, size: 35),
+                            tooltip: 'تغيير ألوان الفرق',
+                            onPressed: _showGameSettings, 
                           ),
                         ),
                       ),
+                      Expanded(
+                        flex: 1,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text(widget.team2Name, style: TextStyle(color: colorTeam2, fontSize: 28, fontWeight: FontWeight.bold)),
+                            const SizedBox(width: 20),
+                            IconButton(
+                              icon: const Icon(Icons.refresh, color: Colors.redAccent, size: 35), 
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (ctx) => AlertDialog(
+                                    backgroundColor: const Color(0xFF4A148C),
+                                    title: const Text('إعادة الجولة', style: TextStyle(color: Colors.white)),
+                                    content: const Text('هل تريد تصفير اللوحة؟', style: TextStyle(color: Colors.white)),
+                                    actions: [
+                                      TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
+                                      ElevatedButton(onPressed: () { Navigator.pop(ctx); _resetGame(); }, style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent), child: const Text('تصفير', style: TextStyle(color: Colors.white))),
+                                    ]
+                                  )
+                                );
+                              }
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
-                  );
-                },
+                  ),
+                ),
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      // الحفاظ على الحجم الضخم للوحة كما طلبت
+                      double maxR_byHeight = (constraints.maxHeight * 0.76) / 8.0; 
+                      double maxR_byWidth = (constraints.maxWidth * 0.96) / 9.526;
+                      double radius = min(maxR_byHeight, maxR_byWidth);
+                      
+                      if (radius < 90.0) radius = 105.0; 
+                      radius = radius.clamp(60.0, 145.0);
+
+                      double width = radius * 1.732;
+                      double height = radius * 2;
+                      double totalWidth = cols * width + (width / 2);
+                      double totalHeight = (rows * height * 0.75) + (height * 0.25);
+
+                      return Stack(
+                        children: [
+                          Positioned.fill(
+                            child: CustomPaint(painter: FourTrianglesPainter(colorTeam1, colorTeam2)),
+                          ),
+                          Positioned.fill(
+                            child: CustomPaint(
+                              painter: HexagonPatternPainter(color: Colors.white, opacity: 0.15),
+                            ),
+                          ),
+                          Align(
+                            alignment: const Alignment(0.0, 0.10), 
+                            child: SizedBox(
+                              width: totalWidth,
+                              height: totalHeight,
+                              child: Stack(
+                                children: List.generate(rows * cols, (index) {
+                                  int r = index ~/ cols;
+                                  int c = index % cols;
+                                  double x = c * width + (r % 2 != 0 ? width / 2 : 0);
+                                  double y = r * height * 0.75;
+                                  return Positioned(
+                                    left: x, top: y,
+                                    child: GestureDetector(
+                                      onTap: () => _handleHexagonTap(r, c),
+                                      child: HexagonWidget(
+                                        letter: currentLetters[index], 
+                                        state: board[r][c], 
+                                        width: width, 
+                                        height: height,
+                                        radius: radius, 
+                                        c1: colorTeam1,
+                                        c2: colorTeam2,
+                                      ),
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+            // ترويسة اللوجو عائمة (Positioned) ومرفوعة لتتداخل مع حافة الشريط الأسود
+            Positioned(
+              top: 15, // رفعها لتلامس الجزء السفلي من الشريط الأسود العلوي
+              left: 0, 
+              right: 0,
+              child: Center(
+                child: IgnorePointer( // لكي لا تعيق الضغط على زر الإعدادات
+                  child: buildHostTitle(),
+                ),
               ),
             ),
           ],

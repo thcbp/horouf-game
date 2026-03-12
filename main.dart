@@ -771,7 +771,7 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
   }
 }
 
-// =================== لوحة اللعب (التصميم الفخم، المرفوع، والضخم) ===================
+// =================== لوحة اللعب ===================
 class GameBoardScreen extends StatefulWidget {
   final String hostName;
   final String team1Name;
@@ -1060,15 +1060,14 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     );
   }
 
-  // اللوجو المائل والأيقوني بأسلوب التلفزيون
+  // اللوجو المائل والأيقوني بأسلوب التلفزيون (تم حذف كلمة "مـع")
   Widget buildHostTitle() {
     return Transform.rotate(
-      angle: -0.05, // الميلان الجميل
+      angle: -0.05, 
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text('حروف', style: GoogleFonts.lalezar(fontSize: 85, color: const Color(0xFFFFD700), height: 0.8, shadows: [const Shadow(color: Colors.black87, offset: Offset(3, 4), blurRadius: 0)])),
-          Text('مــع', style: GoogleFonts.lalezar(fontSize: 40, color: const Color(0xFF00E5FF), height: 0.8, shadows: [const Shadow(color: Colors.black87, offset: Offset(2, 3), blurRadius: 0)])),
           Text(widget.hostName, style: GoogleFonts.lalezar(fontSize: 75, color: const Color(0xFFFF3D00), height: 0.8, shadows: [const Shadow(color: Colors.black87, offset: Offset(3, 4), blurRadius: 0)])),
         ],
       ),
@@ -1082,7 +1081,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // الشريط العلوي (تم مسح الاسم منه لتجنب التكرار)
             Container(
               height: 70,
               padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -1140,17 +1138,16 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                 ],
               ),
             ),
-            // منطقة اللعب الديناميكية
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  // تكبير اللوحة لأقصى حد ممكن
-                  double maxR_byHeight = (constraints.maxHeight * 0.70) / 8.0; 
-                  double maxR_byWidth = (constraints.maxWidth * 0.95) / 9.526;
+                  // تم رفع النسبة لتكبير اللوحة بفضل المساحة اللي كسبناها
+                  double maxR_byHeight = (constraints.maxHeight * 0.76) / 8.0; 
+                  double maxR_byWidth = (constraints.maxWidth * 0.96) / 9.526;
                   double radius = min(maxR_byHeight, maxR_byWidth);
                   
-                  if (radius < 85.0) radius = 95.0; 
-                  radius = radius.clamp(60.0, 130.0);
+                  if (radius < 90.0) radius = 105.0; 
+                  radius = radius.clamp(60.0, 145.0);
 
                   double width = radius * 1.732;
                   double height = radius * 2;
@@ -1162,20 +1159,18 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                       Positioned.fill(
                         child: CustomPaint(painter: FourTrianglesPainter(colorTeam1, colorTeam2)),
                       ),
-                      // العلامة المائية تعمل الآن في اللوحة أيضاً
                       Positioned.fill(
                         child: CustomPaint(
                           painter: HexagonPatternPainter(color: Colors.white, opacity: 0.15),
                         ),
                       ),
-                      // اللوجو المائل والفخم في المنتصف العلوي
                       Positioned(
                         top: 20, left: 0, right: 0,
                         child: Center(child: buildHostTitle()),
                       ),
-                      // اللوحة تم رفعها للأعلى لتكون قريبة من اللوجو ومتوسطة بشكل مثالي
+                      // تم رفع اللوحة لتتمركز بشكل مثالي
                       Align(
-                        alignment: const Alignment(0.0, 0.15), // تم الرفع هنا
+                        alignment: const Alignment(0.0, 0.10), 
                         child: SizedBox(
                           width: totalWidth,
                           height: totalHeight,

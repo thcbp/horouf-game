@@ -25,7 +25,8 @@ jobs:
           
           flutter pub add window_manager
           flutter pub add file_picker
-          
+          flutter pub add google_fonts
+         
           if (Test-Path "..\icon.png") {
             flutter pub add dev:flutter_launcher_icons
             Copy-Item -Path "..\icon.png" -Destination "icon.png" -Force

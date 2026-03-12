@@ -154,6 +154,50 @@ class GlobalData {
   ];
 }
 
+// =================== أداة رسم العلامة المائية القوية ===================
+class HexagonPatternPainter extends CustomPainter {
+  final Color color;
+  final double opacity;
+  HexagonPatternPainter({required this.color, required this.opacity});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color.withOpacity(opacity)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5;
+
+    double radius = 50;
+    double width = radius * 1.732;
+    double height = radius * 2;
+
+    for (double y = 0; y < size.height + height; y += height * 0.75) {
+      bool isOdd = (y / (height * 0.75)).round() % 2 != 0;
+      for (double x = 0; x < size.width + width; x += width) {
+        double cx = x + (isOdd ? width / 2 : 0);
+        double cy = y;
+        _drawHexagon(canvas, Offset(cx, cy), radius, paint);
+      }
+    }
+  }
+
+  void _drawHexagon(Canvas canvas, Offset center, double radius, Paint paint) {
+    final path = Path();
+    for (int i = 0; i < 6; i++) {
+      double angle = (pi / 3) * i - (pi / 6);
+      double px = center.dx + radius * cos(angle);
+      double py = center.dy + radius * sin(angle);
+      if (i == 0) path.moveTo(px, py);
+      else path.lineTo(px, py);
+    }
+    path.close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
 // =================== بداية التطبيق ===================
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -309,13 +353,10 @@ class MainMenuScreen extends StatelessWidget {
       backgroundColor: const Color(0xFF673AB7), 
       body: Stack(
         children: [
+          // العلامة المائية المحسنة (تعمل دائماً)
           Positioned.fill(
-            child: Opacity(
-              opacity: 0.05,
-              child: Image.network(
-                'https://www.transparenttextures.com/patterns/hexagon-pattern.png',
-                repeat: ImageRepeat.repeat,
-              ),
+            child: CustomPaint(
+              painter: HexagonPatternPainter(color: Colors.white, opacity: 0.08),
             ),
           ),
           Positioned(
@@ -337,7 +378,11 @@ class MainMenuScreen extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('لعبة الحروف', style: GoogleFonts.cairo(fontSize: 80, fontWeight: FontWeight.w900, color: Colors.white, shadows: [const Shadow(color: Colors.black45, blurRadius: 10, offset: Offset(0, 5))])),
+                  // لوجو مرح ومائل
+                  Transform.rotate(
+                    angle: -0.05,
+                    child: Text('لعبة الحروف', style: GoogleFonts.lalezar(fontSize: 85, color: Colors.white, shadows: [const Shadow(color: Color(0xFF311B92), blurRadius: 0, offset: Offset(4, 5))])),
+                  ),
                   const SizedBox(height: 15),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -726,7 +771,7 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
   }
 }
 
-// =================== لوحة اللعب (التصميم الفخم والضخم) ===================
+// =================== لوحة اللعب (التصميم الفخم، المرفوع، والضخم) ===================
 class GameBoardScreen extends StatefulWidget {
   final String hostName;
   final String team1Name;
@@ -1015,15 +1060,18 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     );
   }
 
-  // ودجت لترويسة "حروف مع فلان"
+  // اللوجو المائل والأيقوني بأسلوب التلفزيون
   Widget buildHostTitle() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text('حروف', style: GoogleFonts.cairo(fontSize: 65, color: const Color(0xFFFFCA28), fontWeight: FontWeight.w900, height: 0.8, shadows: [const Shadow(color: Colors.black54, offset: Offset(2, 4), blurRadius: 4)])),
-        Text('مـع', style: GoogleFonts.cairo(fontSize: 30, color: const Color(0xFF40C4FF), fontWeight: FontWeight.w900, height: 1.0, shadows: [const Shadow(color: Colors.black54, offset: Offset(1, 2), blurRadius: 2)])),
-        Text(widget.hostName, style: GoogleFonts.cairo(fontSize: 70, color: const Color(0xFFFF5252), fontWeight: FontWeight.w900, height: 0.8, shadows: [const Shadow(color: Colors.black54, offset: Offset(2, 4), blurRadius: 4)])),
-      ],
+    return Transform.rotate(
+      angle: -0.05, // الميلان الجميل
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('حروف', style: GoogleFonts.lalezar(fontSize: 85, color: const Color(0xFFFFD700), height: 0.8, shadows: [const Shadow(color: Colors.black87, offset: Offset(3, 4), blurRadius: 0)])),
+          Text('مــع', style: GoogleFonts.lalezar(fontSize: 40, color: const Color(0xFF00E5FF), height: 0.8, shadows: [const Shadow(color: Colors.black87, offset: Offset(2, 3), blurRadius: 0)])),
+          Text(widget.hostName, style: GoogleFonts.lalezar(fontSize: 75, color: const Color(0xFFFF3D00), height: 0.8, shadows: [const Shadow(color: Colors.black87, offset: Offset(3, 4), blurRadius: 0)])),
+        ],
+      ),
     );
   }
 
@@ -1034,7 +1082,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // الشريط العلوي (تم تفريغ المنتصف لوضع اللوجو في اللوحة)
+            // الشريط العلوي (تم مسح الاسم منه لتجنب التكرار)
             Container(
               height: 70,
               padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -1096,12 +1144,11 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  // خوارزمية ذكية لتكبير اللوحة لأقصى حد ممكن لدرجة تملأ الشاشة
+                  // تكبير اللوحة لأقصى حد ممكن
                   double maxR_byHeight = (constraints.maxHeight * 0.70) / 8.0; 
                   double maxR_byWidth = (constraints.maxWidth * 0.95) / 9.526;
                   double radius = min(maxR_byHeight, maxR_byWidth);
                   
-                  // ضمان أن اللوحة تكون ضخمة جداً (أكبر من القديمة بكثير)
                   if (radius < 85.0) radius = 95.0; 
                   radius = radius.clamp(60.0, 130.0);
 
@@ -1112,28 +1159,23 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
 
                   return Stack(
                     children: [
-                      // 1. رسم المثلثات الأربعة
                       Positioned.fill(
                         child: CustomPaint(painter: FourTrianglesPainter(colorTeam1, colorTeam2)),
                       ),
-                      // 2. العلامة المائية للخلايا السداسية في الخلفية
+                      // العلامة المائية تعمل الآن في اللوحة أيضاً
                       Positioned.fill(
-                        child: Opacity(
-                          opacity: 0.08, // زيادة وضوح العلامة المائية
-                          child: Image.network(
-                            'https://www.transparenttextures.com/patterns/hexagon-pattern.png',
-                            repeat: ImageRepeat.repeat,
-                          ),
+                        child: CustomPaint(
+                          painter: HexagonPatternPainter(color: Colors.white, opacity: 0.15),
                         ),
                       ),
-                      // 3. لوجو المسابقة الفخم والضخم
+                      // اللوجو المائل والفخم في المنتصف العلوي
                       Positioned(
-                        top: 15, left: 0, right: 0,
+                        top: 20, left: 0, right: 0,
                         child: Center(child: buildHostTitle()),
                       ),
-                      // 4. لوحة الخلايا المكبرة
+                      // اللوحة تم رفعها للأعلى لتكون قريبة من اللوجو ومتوسطة بشكل مثالي
                       Align(
-                        alignment: const Alignment(0.0, 0.65), // دفع اللوحة قليلاً للأسفل لترك مساحة للوجو
+                        alignment: const Alignment(0.0, 0.15), // تم الرفع هنا
                         child: SizedBox(
                           width: totalWidth,
                           height: totalHeight,
@@ -1152,7 +1194,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                                     state: board[r][c], 
                                     width: width, 
                                     height: height,
-                                    radius: radius, // تمرير الحجم لتكبير الخط
+                                    radius: radius, 
                                     c1: colorTeam1,
                                     c2: colorTeam2,
                                   ),
@@ -1212,14 +1254,13 @@ class HexagonWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color fillColor = state == 1 ? c1 : (state == 2 ? c2 : Colors.white);
-    Color textColor = state == 0 ? const Color(0xFF311B92) : Colors.white; // البنفسجي الغامق للحروف
+    Color textColor = state == 0 ? const Color(0xFF311B92) : Colors.white; 
     
     return CustomPaint(
       size: Size(width, height),
       painter: HexagonPainter(fillColor),
       child: Container(
         width: width, height: height, alignment: Alignment.center, 
-        // حجم الخط صار ديناميكي ويكبر مع الخلية مع سماكة خرافية (w900)
         child: Text(letter, style: GoogleFonts.cairo(fontSize: radius * 0.70, color: textColor, fontWeight: FontWeight.w900, height: 1.1))
       ),
     );
@@ -1235,7 +1276,6 @@ class HexagonPainter extends CustomPainter {
     
     canvas.drawPath(path, Paint()..color = fillColor..style = PaintingStyle.fill);
     
-    // إطار الخلية بنفسجي، سميك جداً، وبارز
     canvas.drawPath(path, Paint()..color = const Color(0xFF512DA8)..strokeWidth = 7.0..style = PaintingStyle.stroke);
   }
   @override

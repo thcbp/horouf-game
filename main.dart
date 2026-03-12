@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:google_fonts/google_fonts.dart'; // مكتبة الخطوط الذكية
+import 'package:google_fonts/google_fonts.dart'; 
 import 'dart:math';
 import 'dart:convert';
 import 'dart:io';
@@ -183,14 +183,13 @@ class HoroufGameApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'لعبة الحروف',
-      // تطبيق خط Cairo على كامل التطبيق
       theme: ThemeData(
         brightness: Brightness.dark, 
         textTheme: GoogleFonts.cairoTextTheme(Theme.of(context).textTheme).apply(
           bodyColor: Colors.white,
           displayColor: Colors.white,
         ),
-        scaffoldBackgroundColor: const Color(0xFF673AB7), // اللون البنفسجي الأساسي
+        scaffoldBackgroundColor: const Color(0xFF673AB7), 
         colorScheme: const ColorScheme.dark(
           primary: Colors.orangeAccent,
           surface: Color(0xFF512DA8),
@@ -247,7 +246,7 @@ class MainMenuScreen extends StatelessWidget {
                   'board': List.filled(25, 0),
                   'letters': (List.of(GlobalData.allArabicLetters)..shuffle(Random())).take(25).toList(),
                   'winner': 0,
-                  'color1': Colors.orange.value, // ألوان افتراضية
+                  'color1': Colors.orange.value, 
                   'color2': Colors.green.value,
                 };
                 GlobalData.gamesHistory.add(newGame);
@@ -307,10 +306,9 @@ class MainMenuScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF673AB7), // خلفية بنفسجية فخمة
+      backgroundColor: const Color(0xFF673AB7), 
       body: Stack(
         children: [
-          // رسم الخلايا الباهتة في الخلفية (العلامة المائية)
           Positioned.fill(
             child: Opacity(
               opacity: 0.05,
@@ -406,53 +404,320 @@ class MainMenuScreen extends StatelessWidget {
   }
 }
 
-// =================== شاشة السجل وبنك الأسئلة (مختصرة للتركيز على اللوحة) ===================
-class HistoryScreen extends StatefulWidget { const HistoryScreen({super.key}); @override State<HistoryScreen> createState() => _HistoryScreenState(); }
+// =================== شاشة السجل (النسخة الكاملة) ===================
+class HistoryScreen extends StatefulWidget {
+  const HistoryScreen({super.key});
+  @override
+  State<HistoryScreen> createState() => _HistoryScreenState();
+}
+
 class _HistoryScreenState extends State<HistoryScreen> {
-  @override Widget build(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
     List<Map<String, dynamic>> history = GlobalData.gamesHistory.reversed.toList(); 
+    
     return Scaffold(
-      appBar: AppBar(backgroundColor: const Color(0xFF4A148C), title: const Text('سجل الجولات', style: TextStyle(fontWeight: FontWeight.bold))),
-      body: history.isEmpty ? const Center(child: Text('لا توجد جولات محفوظة', style: TextStyle(fontSize: 24))) : ListView.builder(
-        padding: const EdgeInsets.all(20), itemCount: history.length, itemBuilder: (context, index) {
-          var game = history[index];
-          return Card(
-            color: const Color(0xFF512DA8), margin: const EdgeInsets.only(bottom: 15),
-            child: ListTile(
-              title: Text('${game['team1']} 🆚 ${game['team2']}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-              subtitle: Text('المضيف: ${game['host']} | التاريخ: ${game['date']}', style: const TextStyle(color: Colors.white70)),
-              trailing: ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent),
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => GameBoardScreen(hostName: game['host'], team1Name: game['team1'], team2Name: game['team2'], gameData: game))),
-                child: const Text('استكمال', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              ),
-            ),
-          );
-        },
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF4A148C), 
+        elevation: 0, 
+        title: const Text('سجل الجولات السابقة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)), 
+        centerTitle: true
       ),
+      body: history.isEmpty 
+        ? const Center(child: Text('لا توجد جولات محفوظة حالياً', style: TextStyle(color: Colors.white54, fontSize: 24)))
+        : ListView.builder(
+            padding: const EdgeInsets.all(20),
+            itemCount: history.length,
+            itemBuilder: (context, index) {
+              var game = history[index];
+              int winner = game['winner'] ?? 0;
+              String status = winner == 1 ? '🏆 فاز ${game['team1']}' : (winner == 2 ? '🏆 فاز ${game['team2']}' : '⏳ جولة قيد اللعب / غير مكتملة');
+              Color statusColor = winner == 1 ? Colors.orangeAccent : (winner == 2 ? Colors.greenAccent : Colors.grey);
+
+              return Card(
+                color: const Color(0xFF512DA8),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15), side: const BorderSide(color: Colors.white10)), 
+                margin: const EdgeInsets.only(bottom: 15),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
+                  title: Text('${game['team1']} 🆚 ${game['team2']}', style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 8),
+                      Text('المضيف: ${game['host']} | التاريخ: ${game['date']}', style: const TextStyle(color: Colors.white70, fontSize: 16)),
+                      const SizedBox(height: 8),
+                      Text(status, style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 18)),
+                    ],
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                        icon: const Icon(Icons.play_arrow, color: Colors.white),
+                        label: const Text('استكمال', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                        onPressed: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => GameBoardScreen(
+                              hostName: game['host'], team1Name: game['team1'], team2Name: game['team2'], gameData: game
+                          )));
+                        },
+                      ),
+                      const SizedBox(width: 15),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.redAccent, size: 30),
+                        tooltip: 'حذف الجولة',
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              backgroundColor: const Color(0xFF4A148C),
+                              title: const Text('حذف الجولة؟', style: TextStyle(color: Colors.white)),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء', style: TextStyle(fontSize: 16, color: Colors.white70))),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                                  onPressed: () {
+                                    setState(() => GlobalData.gamesHistory.removeWhere((g) => g['id'] == game['id']));
+                                    DataManager.saveHistory();
+                                    Navigator.pop(ctx);
+                                  },
+                                  child: const Text('نعم، احذف', style: TextStyle(color: Colors.white, fontSize: 16)),
+                                )
+                              ]
+                            )
+                          );
+                        }
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
     );
   }
 }
 
-class QuestionBankScreen extends StatefulWidget { const QuestionBankScreen({super.key}); @override State<QuestionBankScreen> createState() => _QuestionBankScreenState(); }
+// =================== بنك الأسئلة (النسخة الكاملة) ===================
+class QuestionBankScreen extends StatefulWidget {
+  const QuestionBankScreen({super.key});
+  @override
+  State<QuestionBankScreen> createState() => _QuestionBankScreenState();
+}
+
 class _QuestionBankScreenState extends State<QuestionBankScreen> {
-  @override Widget build(BuildContext context) {
+  Map<String, List<Map<String, String>>> backupBank = {};
+
+  void _showQuestionDialog({String? letter, int? index, String? initialQ, String? initialA}) {
+    String selectedLetter = letter ?? 'أ';
+    TextEditingController qController = TextEditingController(text: initialQ ?? '');
+    TextEditingController aController = TextEditingController(text: initialA ?? '');
+    bool isEditing = index != null;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF4A148C),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15), side: const BorderSide(color: Colors.white12)),
+              title: Text(isEditing ? 'تعديل السؤال' : 'إضافة سؤال', style: const TextStyle(color: Colors.white)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButton<String>(
+                    value: selectedLetter,
+                    dropdownColor: const Color(0xFF512DA8),
+                    style: const TextStyle(color: Colors.orangeAccent, fontSize: 24, fontWeight: FontWeight.bold),
+                    items: GlobalData.allArabicLetters.map((String value) => DropdownMenuItem<String>(value: value, child: Text("حرف ( $value )"))).toList(),
+                    onChanged: isEditing ? null : (newValue) => setDialogState(() => selectedLetter = newValue!),
+                  ),
+                  TextField(controller: qController, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'السؤال', labelStyle: TextStyle(color: Colors.white70))),
+                  TextField(controller: aController, style: const TextStyle(color: Colors.greenAccent), decoration: const InputDecoration(labelText: 'الإجابة', labelStyle: TextStyle(color: Colors.greenAccent))),
+                ],
+              ),
+              actions: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent),
+                  onPressed: () async {
+                    if (qController.text.isNotEmpty && aController.text.isNotEmpty) {
+                      setState(() {
+                        if (!GlobalData.questionBank.containsKey(selectedLetter)) GlobalData.questionBank[selectedLetter] = [];
+                        if (isEditing) {
+                          GlobalData.questionBank[selectedLetter]![index] = {'q': qController.text, 'a': aController.text};
+                        } else {
+                          GlobalData.questionBank[selectedLetter]!.add({'q': qController.text, 'a': aController.text});
+                        }
+                      });
+                      await DataManager.saveBank();
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: const Text('حفظ', style: TextStyle(color: Colors.white, fontSize: 16)),
+                )
+              ],
+            );
+          }
+        );
+      }
+    );
+  }
+
+  void _deleteQuestion(String letter, int index) {
+    setState(() => GlobalData.questionBank[letter]!.removeAt(index));
+    DataManager.saveBank();
+  }
+
+  void _clearAllQuestions() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF4A148C),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 30),
+            SizedBox(width: 10),
+            Text('تحذير خطير!', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: const Text('هل أنت متأكد أنك تريد حذف جميع الأسئلة من التطبيق؟', style: TextStyle(color: Colors.white, fontSize: 18)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء', style: TextStyle(color: Colors.white54))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              backupBank.clear();
+              GlobalData.questionBank.forEach((k, v) => backupBank[k] = List.from(v.map((item) => Map<String, String>.from(item))));
+              setState(() => GlobalData.questionBank.clear());
+              await DataManager.saveBank();
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('تم مسح جميع الأسئلة بنجاح!', style: TextStyle(fontSize: 16)), backgroundColor: const Color(0xFF512DA8), duration: const Duration(seconds: 7), action: SnackBarAction(label: 'تراجع ↩️', textColor: Colors.orangeAccent, onPressed: () async { setState(() => GlobalData.questionBank = Map.from(backupBank)); await DataManager.saveBank(); })));
+            },
+            child: const Text('نعم، احذف الكل', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          )
+        ]
+      )
+    );
+  }
+
+  void _importFromJsonFile() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['json']);
+      if (result != null) {
+        File file = File(result.files.single.path!);
+        String contents = await file.readAsString();
+        Map<String, dynamic> decoded = jsonDecode(contents);
+        setState(() {
+          decoded.forEach((key, value) {
+            if (!GlobalData.questionBank.containsKey(key)) GlobalData.questionBank[key] = [];
+            for (var item in value) GlobalData.questionBank[key]!.add({'q': item['q'].toString(), 'a': item['a'].toString()});
+          });
+        });
+        await DataManager.saveBank();
+        if (mounted) { Navigator.pop(context); ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم استيراد الملف الجاهز بنجاح!'), backgroundColor: Colors.green)); }
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('خطأ في قراءة الملف! تأكد من أنه ملف JSON سليم.'), backgroundColor: Colors.red));
+    }
+  }
+
+  void _showImportDialog() {
+    TextEditingController jsonController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF4A148C),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15), side: const BorderSide(color: Colors.white12)),
+          title: const Text('استيراد الأسئلة', style: TextStyle(color: Colors.white)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(width: double.maxFinite, child: TextField(controller: jsonController, maxLines: 7, style: const TextStyle(color: Colors.white70, fontFamily: 'monospace'), decoration: const InputDecoration(hintText: 'الصق كود JSON هنا...', border: OutlineInputBorder()))),
+              const Padding(padding: EdgeInsets.symmetric(vertical: 15), child: Text('--- أو ---', style: TextStyle(color: Colors.white54))),
+              SizedBox(width: double.infinity, child: ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7E57C2), padding: const EdgeInsets.symmetric(vertical: 15)), icon: const Icon(Icons.folder_open, color: Colors.white), label: const Text('استيراد من ملف JSON جاهز', style: TextStyle(color: Colors.white, fontSize: 18)), onPressed: _importFromJsonFile)),
+            ],
+          ),
+          actions: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+              onPressed: () async {
+                if (jsonController.text.isEmpty) return;
+                try {
+                  Map<String, dynamic> decoded = jsonDecode(jsonController.text);
+                  setState(() {
+                    decoded.forEach((key, value) {
+                      if (!GlobalData.questionBank.containsKey(key)) GlobalData.questionBank[key] = [];
+                      for (var item in value) GlobalData.questionBank[key]!.add({'q': item['q'].toString(), 'a': item['a'].toString()});
+                    });
+                  });
+                  await DataManager.saveBank();
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم الاستيراد بنجاح!')));
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('خطأ في صيغة الـ JSON المنسوخة!'), backgroundColor: Colors.red));
+                }
+              },
+              child: const Text('حفظ النص المنسوخ', style: TextStyle(color: Colors.white, fontSize: 16)),
+            )
+          ],
+        );
+      }
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF4A148C), title: const Text('بنك الأسئلة', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: const Color(0xFF4A148C),
+        elevation: 0,
+        title: const Text('بنك الأسئلة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        centerTitle: true,
         actions: [
-          IconButton(icon: const Icon(Icons.shuffle_on, color: Colors.greenAccent), onPressed: () { DataManager.resetAndShuffleBank(); ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم الخلط!'))); }),
+          IconButton(
+            icon: const Icon(Icons.shuffle_on, color: Colors.greenAccent, size: 28), 
+            tooltip: 'خلط وإعادة تعيين الأسئلة', 
+            onPressed: () {
+              DataManager.resetAndShuffleBank();
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم خلط الأسئلة! ستبدأ الآن بأسئلة جديدة للجميع.', style: TextStyle(fontSize: 16)), backgroundColor: Colors.green));
+            }
+          ),
+          IconButton(icon: const Icon(Icons.data_object, color: Colors.blueAccent, size: 28), tooltip: 'استيراد', onPressed: _showImportDialog),
+          IconButton(icon: const Icon(Icons.delete_sweep, color: Colors.redAccent, size: 28), tooltip: 'حذف الكل', onPressed: _clearAllQuestions),
         ],
       ),
+      floatingActionButton: FloatingActionButton.extended(backgroundColor: Colors.orangeAccent, icon: const Icon(Icons.add, color: Colors.white), label: const Text('إضافة سؤال', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)), onPressed: () => _showQuestionDialog()),
       body: ListView.builder(
-        padding: const EdgeInsets.all(20), itemCount: GlobalData.allArabicLetters.length, itemBuilder: (context, index) {
+        padding: const EdgeInsets.all(20),
+        itemCount: GlobalData.allArabicLetters.length,
+        itemBuilder: (context, index) {
           String letter = GlobalData.allArabicLetters[index];
           List<Map<String, String>> questions = GlobalData.questionBank[letter] ?? [];
           return Card(
-            color: const Color(0xFF512DA8), margin: const EdgeInsets.only(bottom: 10),
+            color: const Color(0xFF512DA8),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            margin: const EdgeInsets.only(bottom: 10),
             child: ExpansionTile(
-              title: Text('حرف ( $letter )', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.orangeAccent)),
-              children: questions.map((q) => ListTile(title: Text(q['q']!), subtitle: Text('الجواب: ${q['a']}', style: const TextStyle(color: Colors.greenAccent)))).toList(),
+              title: Text('حرف ( $letter )', style: const TextStyle(color: Colors.orangeAccent, fontSize: 24, fontWeight: FontWeight.bold)),
+              subtitle: Text('عدد الأسئلة: ${questions.length}', style: const TextStyle(color: Colors.white54, fontSize: 16)),
+              children: questions.asMap().entries.map((entry) {
+                int qIndex = entry.key; var q = entry.value;
+                return ListTile(
+                  title: Text(q['q']!, style: const TextStyle(color: Colors.white, fontSize: 20)),
+                  subtitle: Text('الإجابة: ${q['a']}', style: const TextStyle(color: Colors.greenAccent, fontSize: 18)),
+                  leading: const Icon(Icons.help_outline, color: Colors.orangeAccent),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(icon: const Icon(Icons.edit, color: Colors.blueAccent), onPressed: () => _showQuestionDialog(letter: letter, index: qIndex, initialQ: q['q'], initialA: q['a'])),
+                      IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent), onPressed: () => _deleteQuestion(letter, qIndex)),
+                    ],
+                  ),
+                );
+              }).toList(),
             ),
           );
         },
@@ -461,7 +726,7 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
   }
 }
 
-// =================== لوحة اللعب (السحر كله هنا) ===================
+// =================== لوحة اللعب (النسخة المكبرة) ===================
 class GameBoardScreen extends StatefulWidget {
   final String hostName;
   final String team1Name;
@@ -496,7 +761,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     board = List.generate(rows, (r) => List.generate(cols, (c) => flatBoard[r * cols + c]));
     currentLetters = widget.gameData['letters'];
     
-    // استرجاع الألوان أو وضع الافتراضي (برتقالي وأخضر)
     colorTeam1 = widget.gameData['color1'] != null ? Color(widget.gameData['color1']) : Colors.orange;
     colorTeam2 = widget.gameData['color2'] != null ? Color(widget.gameData['color2']) : Colors.green;
   }
@@ -514,7 +778,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     HostServer.updateData("-", "اختر حرفاً لتبدأ اللعبة", "-");
   }
 
-  // نافذة الإعدادات العلوية لتغيير الألوان
   void _showGameSettings() {
     showDialog(
       context: context,
@@ -577,7 +840,17 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            onPressed: () { Navigator.pop(ctx); setState(() => board[r][c] = 0); },
+            onPressed: () { 
+              Navigator.pop(ctx); 
+              setState(() {
+                board[r][c] = 0;
+                List<int> flatBoard = [];
+                for (var row in board) { flatBoard.addAll(row); }
+                widget.gameData['board'] = flatBoard;
+                widget.gameData['winner'] = 0;
+                DataManager.saveHistory(); // الحفظ التلقائي عند المسح
+              }); 
+            },
             child: const Text('مسح الخلية', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
           ElevatedButton(
@@ -590,7 +863,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     );
   }
 
-  // تم إصلاح الديالوج ليكون آمن 100% ولا يسبب الشاشة البيضاء
   void _showSafeQuestionDialog(int r, int c) {
     int index = r * cols + c;
     String letter = currentLetters[index];
@@ -685,7 +957,15 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
 
   void _makeMove(int r, int c, int player) {
     setState(() => board[r][c] = player);
+    List<int> flatBoard = [];
+    for (var row in board) { flatBoard.addAll(row); }
+    widget.gameData['board'] = flatBoard;
+    DataManager.saveHistory(); // الحفظ التلقائي للوحة
+
     if (_checkWin(player)) {
+      widget.gameData['winner'] = player;
+      DataManager.saveHistory();
+      
       String winnerName = player == 1 ? widget.team1Name : widget.team2Name;
       Color teamColor = player == 1 ? colorTeam1 : colorTeam2;
       Future.delayed(const Duration(milliseconds: 300), () => _showWinDialog(winnerName, teamColor));
@@ -737,18 +1017,18 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    double radius = 60.0; 
+    // تم تكبير اللوحة بشكل دراماتيكي لتملأ الشاشة (Radius = 75)
+    double radius = 75.0; 
     double width = radius * 1.732;
     double height = radius * 2;
     double totalWidth = cols * width + (width / 2);
     double totalHeight = (rows * height * 0.75) + (height * 0.25);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E2C), // خلفية داكنة للوحة لتبرز المثلثات
+      backgroundColor: const Color(0xFF1E1E2C), 
       body: SafeArea(
         child: Column(
           children: [
-            // الترويسة العلوية وأزرار الإعدادات
             Container(
               height: 90,
               padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -772,7 +1052,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                       child: IconButton(
                         icon: const Icon(Icons.settings, color: Colors.white, size: 40),
                         tooltip: 'تغيير ألوان الفرق',
-                        onPressed: _showGameSettings, // زر الإعدادات الجديد
+                        onPressed: _showGameSettings, 
                       ),
                     ),
                   ),
@@ -783,19 +1063,32 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                       children: [
                         Text(widget.team2Name, style: TextStyle(color: colorTeam2, fontSize: 28, fontWeight: FontWeight.bold)),
                         const SizedBox(width: 20),
-                        IconButton(icon: const Icon(Icons.refresh, color: Colors.redAccent, size: 35), onPressed: () {
-                          setState(() => _resetGame());
-                        }),
+                        IconButton(
+                          icon: const Icon(Icons.refresh, color: Colors.redAccent, size: 35), 
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                backgroundColor: const Color(0xFF4A148C),
+                                title: const Text('إعادة الجولة', style: TextStyle(color: Colors.white)),
+                                content: const Text('هل تريد تصفير اللوحة؟', style: TextStyle(color: Colors.white)),
+                                actions: [
+                                  TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
+                                  ElevatedButton(onPressed: () { Navigator.pop(ctx); _resetGame(); }, style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent), child: const Text('تصفير', style: TextStyle(color: Colors.white))),
+                                ]
+                              )
+                            );
+                          }
+                        ),
                       ],
                     ),
                   ),
                 ],
               ),
             ),
-            // مساحة اللعب مع المثلثات الأربعة الضخمة
             Expanded(
               child: CustomPaint(
-                painter: FourTrianglesPainter(colorTeam1, colorTeam2), // المثلثات الأربعة
+                painter: FourTrianglesPainter(colorTeam1, colorTeam2),
                 child: Center(
                   child: SizedBox(
                     width: totalWidth,
@@ -833,10 +1126,9 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
   }
 }
 
-// رسم المثلثات الأربعة المتقاطعة في الخلفية
 class FourTrianglesPainter extends CustomPainter {
-  final Color c1; // أفقي
-  final Color c2; // عمودي
+  final Color c1; 
+  final Color c2; 
   FourTrianglesPainter(this.c1, this.c2);
 
   @override
@@ -848,11 +1140,9 @@ class FourTrianglesPainter extends CustomPainter {
     final paint1 = Paint()..color = c1;
     final paint2 = Paint()..color = c2;
     
-    // يمين ويسار للفريق الأفقي (c1)
     canvas.drawPath(Path()..moveTo(0, 0)..lineTo(0, h)..lineTo(center.dx, center.dy)..close(), paint1);
     canvas.drawPath(Path()..moveTo(w, 0)..lineTo(w, h)..lineTo(center.dx, center.dy)..close(), paint1);
     
-    // فوق وتحت للفريق العمودي (c2)
     canvas.drawPath(Path()..moveTo(0, 0)..lineTo(w, 0)..lineTo(center.dx, center.dy)..close(), paint2);
     canvas.drawPath(Path()..moveTo(0, h)..lineTo(w, h)..lineTo(center.dx, center.dy)..close(), paint2);
   }
@@ -860,7 +1150,7 @@ class FourTrianglesPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 
-// رسم الخلية السداسية
+// تصميم الخلايا الجديد (حواف سميكة، حروف ملونة وعريضة)
 class HexagonWidget extends StatelessWidget {
   final String letter;
   final int state;
@@ -874,14 +1164,17 @@ class HexagonWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color fillColor = state == 1 ? c1 : (state == 2 ? c2 : Colors.white);
-    Color textColor = state == 0 ? Colors.black87 : Colors.white;
+    
+    // لون الحرف: أبيض إذا فاز فريق، وبنفسجي داكن إذا كانت الخلية بيضاء
+    Color textColor = state == 0 ? const Color(0xFF311B92) : Colors.white;
     
     return CustomPaint(
       size: Size(width, height),
       painter: HexagonPainter(fillColor),
       child: Container(
         width: width, height: height, alignment: Alignment.center, 
-        child: Text(letter, style: TextStyle(fontSize: 42, color: textColor, fontWeight: FontWeight.bold))
+        // تكبير الخط وتثخينه جداً (w900)
+        child: Text(letter, style: GoogleFonts.cairo(fontSize: 50, color: textColor, fontWeight: FontWeight.w900, height: 1.1))
       ),
     );
   }
@@ -895,8 +1188,9 @@ class HexagonPainter extends CustomPainter {
     final path = Path()..moveTo(size.width * 0.5, 0)..lineTo(size.width, size.height * 0.25)..lineTo(size.width, size.height * 0.75)..lineTo(size.width * 0.5, size.height)..lineTo(0, size.height * 0.75)..lineTo(0, size.height * 0.25)..close();
     
     canvas.drawPath(path, Paint()..color = fillColor..style = PaintingStyle.fill);
-    // إطار خفيف وناعم
-    canvas.drawPath(path, Paint()..color = Colors.black26..strokeWidth = 3.0..style = PaintingStyle.stroke);
+    
+    // إطار الخلية السداسية بنفسجي وسميك جداً (Stroke = 6.0)
+    canvas.drawPath(path, Paint()..color = const Color(0xFF512DA8)..strokeWidth = 6.0..style = PaintingStyle.stroke);
   }
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;

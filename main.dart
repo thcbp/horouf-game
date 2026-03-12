@@ -726,7 +726,7 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
   }
 }
 
-// =================== لوحة اللعب (النسخة المكبرة) ===================
+// =================== لوحة اللعب (التصميم الفخم والضخم) ===================
 class GameBoardScreen extends StatefulWidget {
   final String hostName;
   final String team1Name;
@@ -848,7 +848,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                 for (var row in board) { flatBoard.addAll(row); }
                 widget.gameData['board'] = flatBoard;
                 widget.gameData['winner'] = 0;
-                DataManager.saveHistory(); // الحفظ التلقائي عند المسح
+                DataManager.saveHistory(); 
               }); 
             },
             child: const Text('مسح الخلية', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -960,7 +960,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     List<int> flatBoard = [];
     for (var row in board) { flatBoard.addAll(row); }
     widget.gameData['board'] = flatBoard;
-    DataManager.saveHistory(); // الحفظ التلقائي للوحة
+    DataManager.saveHistory(); 
 
     if (_checkWin(player)) {
       widget.gameData['winner'] = player;
@@ -1015,22 +1015,28 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     );
   }
 
+  // ودجت لترويسة "حروف مع فلان"
+  Widget buildHostTitle() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('حروف', style: GoogleFonts.cairo(fontSize: 65, color: const Color(0xFFFFCA28), fontWeight: FontWeight.w900, height: 0.8, shadows: [const Shadow(color: Colors.black54, offset: Offset(2, 4), blurRadius: 4)])),
+        Text('مـع', style: GoogleFonts.cairo(fontSize: 30, color: const Color(0xFF40C4FF), fontWeight: FontWeight.w900, height: 1.0, shadows: [const Shadow(color: Colors.black54, offset: Offset(1, 2), blurRadius: 2)])),
+        Text(widget.hostName, style: GoogleFonts.cairo(fontSize: 70, color: const Color(0xFFFF5252), fontWeight: FontWeight.w900, height: 0.8, shadows: [const Shadow(color: Colors.black54, offset: Offset(2, 4), blurRadius: 4)])),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // تم تكبير اللوحة بشكل دراماتيكي لتملأ الشاشة (Radius = 75)
-    double radius = 75.0; 
-    double width = radius * 1.732;
-    double height = radius * 2;
-    double totalWidth = cols * width + (width / 2);
-    double totalHeight = (rows * height * 0.75) + (height * 0.25);
-
     return Scaffold(
       backgroundColor: const Color(0xFF1E1E2C), 
       body: SafeArea(
         child: Column(
           children: [
+            // الشريط العلوي (تم تفريغ المنتصف لوضع اللوجو في اللوحة)
             Container(
-              height: 90,
+              height: 70,
               padding: const EdgeInsets.symmetric(horizontal: 30),
               color: const Color(0xFF12121A), 
               child: Row(
@@ -1050,7 +1056,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                     flex: 1,
                     child: Center(
                       child: IconButton(
-                        icon: const Icon(Icons.settings, color: Colors.white, size: 40),
+                        icon: const Icon(Icons.settings, color: Colors.white, size: 35),
                         tooltip: 'تغيير ألوان الفرق',
                         onPressed: _showGameSettings, 
                       ),
@@ -1086,37 +1092,79 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                 ],
               ),
             ),
+            // منطقة اللعب الديناميكية
             Expanded(
-              child: CustomPaint(
-                painter: FourTrianglesPainter(colorTeam1, colorTeam2),
-                child: Center(
-                  child: SizedBox(
-                    width: totalWidth,
-                    height: totalHeight,
-                    child: Stack(
-                      children: List.generate(rows * cols, (index) {
-                        int r = index ~/ cols;
-                        int c = index % cols;
-                        double x = c * width + (r % 2 != 0 ? width / 2 : 0);
-                        double y = r * height * 0.75;
-                        return Positioned(
-                          left: x, top: y,
-                          child: GestureDetector(
-                            onTap: () => _handleHexagonTap(r, c),
-                            child: HexagonWidget(
-                              letter: currentLetters[index], 
-                              state: board[r][c], 
-                              width: width, 
-                              height: height,
-                              c1: colorTeam1,
-                              c2: colorTeam2,
-                            ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // خوارزمية ذكية لتكبير اللوحة لأقصى حد ممكن لدرجة تملأ الشاشة
+                  double maxR_byHeight = (constraints.maxHeight * 0.70) / 8.0; 
+                  double maxR_byWidth = (constraints.maxWidth * 0.95) / 9.526;
+                  double radius = min(maxR_byHeight, maxR_byWidth);
+                  
+                  // ضمان أن اللوحة تكون ضخمة جداً (أكبر من القديمة بكثير)
+                  if (radius < 85.0) radius = 95.0; 
+                  radius = radius.clamp(60.0, 130.0);
+
+                  double width = radius * 1.732;
+                  double height = radius * 2;
+                  double totalWidth = cols * width + (width / 2);
+                  double totalHeight = (rows * height * 0.75) + (height * 0.25);
+
+                  return Stack(
+                    children: [
+                      // 1. رسم المثلثات الأربعة
+                      Positioned.fill(
+                        child: CustomPaint(painter: FourTrianglesPainter(colorTeam1, colorTeam2)),
+                      ),
+                      // 2. العلامة المائية للخلايا السداسية في الخلفية
+                      Positioned.fill(
+                        child: Opacity(
+                          opacity: 0.08, // زيادة وضوح العلامة المائية
+                          child: Image.network(
+                            'https://www.transparenttextures.com/patterns/hexagon-pattern.png',
+                            repeat: ImageRepeat.repeat,
                           ),
-                        );
-                      }),
-                    ),
-                  ),
-                ),
+                        ),
+                      ),
+                      // 3. لوجو المسابقة الفخم والضخم
+                      Positioned(
+                        top: 15, left: 0, right: 0,
+                        child: Center(child: buildHostTitle()),
+                      ),
+                      // 4. لوحة الخلايا المكبرة
+                      Align(
+                        alignment: const Alignment(0.0, 0.65), // دفع اللوحة قليلاً للأسفل لترك مساحة للوجو
+                        child: SizedBox(
+                          width: totalWidth,
+                          height: totalHeight,
+                          child: Stack(
+                            children: List.generate(rows * cols, (index) {
+                              int r = index ~/ cols;
+                              int c = index % cols;
+                              double x = c * width + (r % 2 != 0 ? width / 2 : 0);
+                              double y = r * height * 0.75;
+                              return Positioned(
+                                left: x, top: y,
+                                child: GestureDetector(
+                                  onTap: () => _handleHexagonTap(r, c),
+                                  child: HexagonWidget(
+                                    letter: currentLetters[index], 
+                                    state: board[r][c], 
+                                    width: width, 
+                                    height: height,
+                                    radius: radius, // تمرير الحجم لتكبير الخط
+                                    c1: colorTeam1,
+                                    c2: colorTeam2,
+                                  ),
+                                ),
+                              );
+                            }),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
           ],
@@ -1150,31 +1198,29 @@ class FourTrianglesPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 
-// تصميم الخلايا الجديد (حواف سميكة، حروف ملونة وعريضة)
 class HexagonWidget extends StatelessWidget {
   final String letter;
   final int state;
   final double width;
   final double height;
+  final double radius;
   final Color c1;
   final Color c2;
   
-  const HexagonWidget({super.key, required this.letter, required this.state, required this.width, required this.height, required this.c1, required this.c2});
+  const HexagonWidget({super.key, required this.letter, required this.state, required this.width, required this.height, required this.radius, required this.c1, required this.c2});
   
   @override
   Widget build(BuildContext context) {
     Color fillColor = state == 1 ? c1 : (state == 2 ? c2 : Colors.white);
-    
-    // لون الحرف: أبيض إذا فاز فريق، وبنفسجي داكن إذا كانت الخلية بيضاء
-    Color textColor = state == 0 ? const Color(0xFF311B92) : Colors.white;
+    Color textColor = state == 0 ? const Color(0xFF311B92) : Colors.white; // البنفسجي الغامق للحروف
     
     return CustomPaint(
       size: Size(width, height),
       painter: HexagonPainter(fillColor),
       child: Container(
         width: width, height: height, alignment: Alignment.center, 
-        // تكبير الخط وتثخينه جداً (w900)
-        child: Text(letter, style: GoogleFonts.cairo(fontSize: 50, color: textColor, fontWeight: FontWeight.w900, height: 1.1))
+        // حجم الخط صار ديناميكي ويكبر مع الخلية مع سماكة خرافية (w900)
+        child: Text(letter, style: GoogleFonts.cairo(fontSize: radius * 0.70, color: textColor, fontWeight: FontWeight.w900, height: 1.1))
       ),
     );
   }
@@ -1189,8 +1235,8 @@ class HexagonPainter extends CustomPainter {
     
     canvas.drawPath(path, Paint()..color = fillColor..style = PaintingStyle.fill);
     
-    // إطار الخلية السداسية بنفسجي وسميك جداً (Stroke = 6.0)
-    canvas.drawPath(path, Paint()..color = const Color(0xFF512DA8)..strokeWidth = 6.0..style = PaintingStyle.stroke);
+    // إطار الخلية بنفسجي، سميك جداً، وبارز
+    canvas.drawPath(path, Paint()..color = const Color(0xFF512DA8)..strokeWidth = 7.0..style = PaintingStyle.stroke);
   }
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;

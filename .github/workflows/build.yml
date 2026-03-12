@@ -26,7 +26,7 @@ jobs:
           flutter pub add window_manager
           flutter pub add file_picker
           flutter pub add google_fonts
-         
+          
           if (Test-Path "..\icon.png") {
             flutter pub add dev:flutter_launcher_icons
             Copy-Item -Path "..\icon.png" -Destination "icon.png" -Force
@@ -35,15 +35,6 @@ jobs:
             echo "  windows:" >> flutter_launcher_icons.yaml
             echo "    generate: true" >> flutter_launcher_icons.yaml
             flutter pub run flutter_launcher_icons -f flutter_launcher_icons.yaml
-          }
-          
-          if (Test-Path "..\hacen.ttf") {
-            mkdir assets\fonts
-            Copy-Item -Path "..\hacen.ttf" -Destination "assets\fonts\hacen.ttf" -Force
-            echo "  fonts:" >> pubspec.yaml
-            echo "    - family: Hacen" >> pubspec.yaml
-            echo "      fonts:" >> pubspec.yaml
-            echo "        - asset: assets/fonts/hacen.ttf" >> pubspec.yaml
           }
           
           flutter build windows --release

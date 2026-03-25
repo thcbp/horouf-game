@@ -21,7 +21,10 @@ class FirebaseManager {
       request.headers.contentType = ContentType.json;
       request.write(jsonEncode({
         "state": "waiting",
-        "buzzer": "",
+        "buzzerTeam": "",
+        "buzzerName": "",
+        "lock1": false,
+        "lock2": false,
         "team1": t1,
         "team2": t2
       }));
@@ -31,30 +34,39 @@ class FirebaseManager {
     }
   }
 
-  static Future<void> setQuestionState(bool isOpen) async {
+  static Future<void> updateRoom({
+    required String state,
+    required String buzzerTeam,
+    required String buzzerName,
+    required bool lock1,
+    required bool lock2,
+  }) async {
     if (roomCode.isEmpty) return;
     try {
       var url = Uri.parse("$dbUrl/rooms/$roomCode.json");
       var request = await HttpClient().patchUrl(url);
       request.headers.contentType = ContentType.json;
       request.write(jsonEncode({
-        "state": isOpen ? "question" : "waiting",
-        "buzzer": ""
+        "state": state,
+        "buzzerTeam": buzzerTeam,
+        "buzzerName": buzzerName,
+        "lock1": lock1,
+        "lock2": lock2,
       }));
       await request.close();
     } catch (e) {}
   }
 
-  static Future<String> checkBuzzer() async {
-    if (roomCode.isEmpty) return "";
+  static Future<Map<String, dynamic>?> fetchRoom() async {
+    if (roomCode.isEmpty) return null;
     try {
-      var url = Uri.parse("$dbUrl/rooms/$roomCode/buzzer.json");
+      var url = Uri.parse("$dbUrl/rooms/$roomCode.json");
       var request = await HttpClient().getUrl(url);
       var response = await request.close();
       var responseBody = await response.transform(utf8.decoder).join();
-      return responseBody.replaceAll('"', ''); 
+      return jsonDecode(responseBody);
     } catch (e) {
-      return "";
+      return null;
     }
   }
 }
@@ -68,7 +80,6 @@ class HostServer {
   static Future<void> start() async {
     try {
       var server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8080);
-      print("Host server running on http://localhost:8080");
       await for (HttpRequest request in server) {
         if (request.uri.path == '/api/current') {
           request.response
@@ -245,9 +256,7 @@ class HexagonPatternPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false; // تم إصلاح دالة shouldRepaint المفقودة
-  }
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 // =================== بداية التطبيق ===================
@@ -332,7 +341,6 @@ class MainMenuScreen extends StatelessWidget {
               icon: const Icon(Icons.play_arrow, color: Colors.white),
               label: const Text('انطلق للعب!', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
               onPressed: () async {
-                // تفعيل السحابة فوراً
                 await FirebaseManager.createRoom(t1Controller.text, t2Controller.text);
 
                 String newId = DateTime.now().millisecondsSinceEpoch.toString();
@@ -437,7 +445,6 @@ class MainMenuScreen extends StatelessWidget {
                     child: Text('لعبة الحروف', style: GoogleFonts.lalezar(fontSize: 85, color: Colors.white, shadows: [const Shadow(color: Color(0xFF311B92), blurRadius: 0, offset: Offset(4, 5))])),
                   ),
                   const SizedBox(height: 15),
-                  // تعديل رابط الهوست كما طلبت
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(15)),
@@ -556,9 +563,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         icon: const Icon(Icons.play_arrow, color: Colors.white),
                         label: const Text('استكمال', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                         onPressed: () async {
-                          // تفعيل السحابة للجولة القديمة
-                          FirebaseManager.roomCode = (Random().nextInt(9000) + 1000).toString();
-                          await FirebaseManager.setQuestionState(false);
+                          await FirebaseManager.createRoom(game['team1'], game['team2']);
                           
                           Navigator.push(context, MaterialPageRoute(builder: (context) => GameBoardScreen(
                               hostName: game['host'], team1Name: game['team1'], team2Name: game['team2'], gameData: game
@@ -963,7 +968,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     );
   }
 
-  // =================== نافذة السؤال الذكية مع الـ 10 ثواني ===================
+  // =================== نافذة السؤال الذكية (نظام الأجراس الجديد) ===================
   void _showSafeQuestionDialog(int r, int c) {
     int index = r * cols + c;
     String letter = currentLetters[index];
@@ -975,13 +980,14 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     if (currentQIndex >= questions.length) currentQIndex = 0; 
     bool isAnswerRevealed = false;
 
-    // متغيرات الجرس وتعديل الوقت إلى 10 ثواني ⏱️
-    int? buzzerTeam;
-    int timeLeft = 10;
-    Timer? countdownTimer;
+    // الخوارزمية الجديدة
+    int? activeBuzzerTeam;
+    String activeBuzzerName = "";
+    int answerTime = 5;
+    int penalty1 = 0;
+    int penalty2 = 0;
+    Timer? secTimer;
     Timer? pollingTimer;
-    Set<int> lockedTeams = {};
-    bool isInit = false;
 
     HostServer.updateData(letter, questions[currentQIndex]['q']!, questions[currentQIndex]['a']!);
 
@@ -994,89 +1000,95 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
 
             void cleanup() {
               pollingTimer?.cancel();
-              countdownTimer?.cancel();
-              FirebaseManager.setQuestionState(false);
+              secTimer?.cancel();
+              FirebaseManager.updateRoom(state: "waiting", buzzerTeam: "", buzzerName: "", lock1: false, lock2: false);
             }
 
-            void startCountdown() {
-              pollingTimer?.cancel();
-              timeLeft = 10; // تم تعديل المؤقت إلى 10 ثواني
-              countdownTimer?.cancel();
-              countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+            void triggerWrongAnswer() {
+              int failedTeam = activeBuzzerTeam!;
+              activeBuzzerTeam = null;
+              activeBuzzerName = "";
+              
+              if (failedTeam == 1) penalty1 = 10;
+              if (failedTeam == 2) penalty2 = 10;
+              
+              // التكتيك الذكي: لو الفريقين تجاوبوا خطأ، تتكنسل كل العقوبات فوراً
+              if (penalty1 > 0 && penalty2 > 0) {
+                  penalty1 = 0;
+                  penalty2 = 0;
+              }
+              
+              FirebaseManager.updateRoom(state: "question", buzzerTeam: "", buzzerName: "", lock1: penalty1 > 0, lock2: penalty2 > 0);
+            }
+
+            if (secTimer == null) {
+              FirebaseManager.updateRoom(state: "question", buzzerTeam: "", buzzerName: "", lock1: false, lock2: false);
+              
+              secTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+                bool needsUpdate = false;
                 setDialogState(() {
-                  if (timeLeft > 0) {
-                    timeLeft--;
-                  } else {
-                    countdownTimer?.cancel();
-                    lockedTeams.add(buzzerTeam!);
-                    buzzerTeam = null;
-                    FirebaseManager.setQuestionState(true);
-                    
-                    pollingTimer = Timer.periodic(const Duration(milliseconds: 500), (t) async {
-                      String b = await FirebaseManager.checkBuzzer();
-                      if (b == "team1" && !lockedTeams.contains(1)) {
-                        setDialogState(() { buzzerTeam = 1; });
-                        startCountdown();
-                      } else if (b == "team2" && !lockedTeams.contains(2)) {
-                        setDialogState(() { buzzerTeam = 2; });
-                        startCountdown();
-                      }
-                    });
+                  if (activeBuzzerTeam != null) {
+                    if (answerTime > 0) answerTime--;
+                    else triggerWrongAnswer();
+                  }
+
+                  if (penalty1 > 0) {
+                    penalty1--;
+                    if (penalty1 == 0) needsUpdate = true;
+                  }
+                  if (penalty2 > 0) {
+                    penalty2--;
+                    if (penalty2 == 0) needsUpdate = true;
                   }
                 });
+                if (needsUpdate) {
+                  FirebaseManager.updateRoom(state: "question", buzzerTeam: "", buzzerName: "", lock1: penalty1 > 0, lock2: penalty2 > 0);
+                }
               });
-            }
 
-            void startPolling() {
-              FirebaseManager.setQuestionState(true);
-              pollingTimer?.cancel();
               pollingTimer = Timer.periodic(const Duration(milliseconds: 500), (timer) async {
-                String b = await FirebaseManager.checkBuzzer();
-                if (b == "team1" && !lockedTeams.contains(1)) {
-                  setDialogState(() { buzzerTeam = 1; });
-                  startCountdown();
-                } else if (b == "team2" && !lockedTeams.contains(2)) {
-                  setDialogState(() { buzzerTeam = 2; });
-                  startCountdown();
+                if (activeBuzzerTeam != null) return;
+                var data = await FirebaseManager.fetchRoom();
+                if (data != null && data["buzzerTeam"] != "") {
+                  String bTeam = data["buzzerTeam"];
+                  if ((bTeam == "team1" && penalty1 == 0) || (bTeam == "team2" && penalty2 == 0)) {
+                      setDialogState(() {
+                          activeBuzzerTeam = bTeam == "team1" ? 1 : 2;
+                          activeBuzzerName = data["buzzerName"] ?? "لاعب";
+                          answerTime = 5;
+                      });
+                  }
                 }
               });
             }
 
-            if (!isInit) {
-              isInit = true;
-              startPolling();
-            }
-
-            Color borderColor = buzzerTeam == 1 ? colorTeam1 : (buzzerTeam == 2 ? colorTeam2 : Colors.white24);
-            String teamName = buzzerTeam == 1 ? widget.team1Name : widget.team2Name;
+            Color borderColor = activeBuzzerTeam == 1 ? colorTeam1 : (activeBuzzerTeam == 2 ? colorTeam2 : Colors.white24);
+            String teamName = activeBuzzerTeam == 1 ? widget.team1Name : widget.team2Name;
 
             return AlertDialog(
               backgroundColor: const Color(0xFF311B92),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30), side: BorderSide(color: borderColor, width: buzzerTeam != null ? 6 : 2)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30), side: BorderSide(color: borderColor, width: activeBuzzerTeam != null ? 6 : 2)),
               contentPadding: const EdgeInsets.all(30),
               content: SizedBox(
                 width: 600,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (buzzerTeam != null)
+                    if (activeBuzzerTeam != null)
                       Column(
                         children: [
-                          Text('فريق $teamName يجاوب! 🏃‍♂️', style: TextStyle(fontSize: 35, color: borderColor, fontWeight: FontWeight.bold)),
+                          Text('($activeBuzzerName) من فريق $teamName يجاوب! 🏃‍♂️', textAlign: TextAlign.center, style: TextStyle(fontSize: 32, color: borderColor, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 20),
                           Stack(
                             alignment: Alignment.center,
                             children: [
-                              // قيمة الدائرة تم تحديثها لتقسيمها على 10
-                              SizedBox(width: 80, height: 80, child: CircularProgressIndicator(value: timeLeft / 10, color: borderColor, strokeWidth: 8)),
-                              Text('$timeLeft', style: TextStyle(fontSize: 40, color: borderColor, fontWeight: FontWeight.bold)),
+                              SizedBox(width: 80, height: 80, child: CircularProgressIndicator(value: answerTime / 5, color: borderColor, strokeWidth: 8)),
+                              Text('$answerTime', style: TextStyle(fontSize: 40, color: borderColor, fontWeight: FontWeight.bold)),
                             ],
                           ),
                           const SizedBox(height: 20),
                         ],
                       )
-                    else if (lockedTeams.length == 2)
-                      const Text('انتهت محاولات الفريقين! ❌', style: TextStyle(fontSize: 28, color: Colors.redAccent, fontWeight: FontWeight.bold))
                     else
                       Column(
                         children: [
@@ -1086,7 +1098,15 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                             child: Text(letter, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 60, fontWeight: FontWeight.bold)),
                           ),
                           const SizedBox(height: 15),
-                          const Text('🔔 بانتظار ضغطة الجرس...', style: TextStyle(color: Colors.amberAccent, fontSize: 20, fontWeight: FontWeight.bold)),
+                          if (penalty1 > 0 || penalty2 > 0)
+                             Column(
+                               children: [
+                                 if (penalty1 > 0) Text('عقوبة ${widget.team1Name}: $penalty1 ثواني 🚫', style: const TextStyle(color: Colors.redAccent, fontSize: 18, fontWeight: FontWeight.bold)),
+                                 if (penalty2 > 0) Text('عقوبة ${widget.team2Name}: $penalty2 ثواني 🚫', style: const TextStyle(color: Colors.redAccent, fontSize: 18, fontWeight: FontWeight.bold)),
+                               ],
+                             )
+                          else
+                             const Text('🔔 بانتظار ضغطة الجرس...', style: TextStyle(color: Colors.amberAccent, fontSize: 20, fontWeight: FontWeight.bold)),
                         ],
                       ),
                       
@@ -1101,7 +1121,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                     ),
                     const SizedBox(height: 30),
                     
-                    if (buzzerTeam == null)
+                    if (activeBuzzerTeam == null)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -1114,9 +1134,9 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                                 currentQIndex = (currentQIndex + 1) % questions.length;
                                 GlobalData.letterQuestionIndex[letter] = currentQIndex; 
                                 isAnswerRevealed = false;
-                                lockedTeams.clear(); 
+                                penalty1 = 0; penalty2 = 0;
                                 HostServer.updateData(letter, questions[currentQIndex]['q']!, questions[currentQIndex]['a']!);
-                                FirebaseManager.setQuestionState(true);
+                                FirebaseManager.updateRoom(state: "question", buzzerTeam: "", buzzerName: "", lock1: false, lock2: false);
                               });
                             },
                           ),
@@ -1133,7 +1153,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                 ),
               ),
               actionsAlignment: MainAxisAlignment.center,
-              actions: buzzerTeam != null 
+              actions: activeBuzzerTeam != null 
               ? [
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.green, padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15)),
@@ -1143,7 +1163,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                       cleanup(); 
                       GlobalData.letterQuestionIndex[letter] = (currentQIndex + 1) % questions.length; 
                       Navigator.pop(ctx); 
-                      _makeMove(r, c, buzzerTeam!); 
+                      _makeMove(r, c, activeBuzzerTeam!); 
                       HostServer.updateData("-", "اختر حرفاً لتبدأ اللعبة", "-"); 
                     },
                   ),
@@ -1153,12 +1173,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                     icon: const Icon(Icons.cancel, color: Colors.white, size: 30),
                     label: const Text('إجابة خاطئة', style: TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold)),
                     onPressed: () { 
-                      countdownTimer?.cancel();
-                      setDialogState(() {
-                        lockedTeams.add(buzzerTeam!);
-                        buzzerTeam = null;
-                        startPolling();
-                      });
+                      setDialogState(() { triggerWrongAnswer(); });
                     },
                   ),
                 ]
@@ -1242,7 +1257,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     );
   }
 
-  // اللوجو المائل والأيقوني المرفوع للأعلى
   Widget buildHostTitle() {
     return Transform.rotate(
       angle: -0.05, 
@@ -1265,14 +1279,12 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
           children: [
             Column(
               children: [
-                // الشريط العلوي مع ترتيب الرابط في الزاوية اليمنى القصوى
                 Container(
                   height: 70,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   color: const Color(0x9912121A), 
                   child: Row(
                     children: [
-                      // القسم الأيسر: زر العودة والفريق الأول
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -1281,11 +1293,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                           Text(widget.team1Name, style: TextStyle(color: colorTeam1, fontSize: 26, fontWeight: FontWeight.bold)),
                         ],
                       ),
-                      
-                      // مساحة المنتصف (فارغة ليتنفس اللوجو)
                       const Spacer(),
-                      
-                      // القسم الأيمن (تم نقل الرابط والأدوات للزاوية اليمنى)
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -1306,9 +1314,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                               )
                             );
                           }),
-                          // فاصل بصري
                           Container(width: 2, height: 40, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 10)),
-                          // الرابط وكود الغرفة قابل للنسخ
                           Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.end,
@@ -1340,7 +1346,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                     ],
                   ),
                 ),
-                // منطقة اللعب الديناميكية
                 Expanded(
                   child: LayoutBuilder(
                     builder: (context, constraints) {

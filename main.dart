@@ -245,7 +245,9 @@ class HexagonPatternPainter extends CustomPainter {
   }
 
   @override
-  bool Repaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return false;
+  }
 }
 
 // =================== بداية التطبيق ===================
@@ -418,15 +420,6 @@ class MainMenuScreen extends StatelessWidget {
                 windowManager.setFullScreen(!isFull);
             }),
           ),
-          // تم نقل رسالة السيرفر إلى الزاوية السفلية اليسرى كما طلبت
-          Positioned(
-            bottom: 20, left: 20,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-              decoration: BoxDecoration(color: Colors.black45, borderRadius: BorderRadius.circular(10)),
-              child: const Text('☁️ تم ربط السيرفر السحابي بنجاح', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 14)),
-            ),
-          ),
           Center(
             child: Container(
               padding: const EdgeInsets.all(50),
@@ -450,8 +443,7 @@ class MainMenuScreen extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // تم تغيير النص هنا بناءً على طلبك
-                        const Text('رابط شاشة المقدم السرية 🤫', style: TextStyle(fontSize: 20, color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
+                        const Text('تم ربط السيرفر السحابي بنجاح ☁️', style: TextStyle(fontSize: 20, color: Colors.greenAccent, fontWeight: FontWeight.bold)),
                         const SizedBox(width: 20),
                         IconButton(icon: const Icon(Icons.copy, color: Colors.white), tooltip: 'نسخ رابط الشاشة السرية', onPressed: () {
                             Clipboard.setData(const ClipboardData(text: 'http://localhost:8080'));
@@ -563,6 +555,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         icon: const Icon(Icons.play_arrow, color: Colors.white),
                         label: const Text('استكمال', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                         onPressed: () async {
+                          // تفعيل السحابة للجولة القديمة
                           FirebaseManager.roomCode = (Random().nextInt(9000) + 1000).toString();
                           await FirebaseManager.setQuestionState(false);
                           
@@ -969,7 +962,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     );
   }
 
-  // =================== نافذة السؤال الذكية ===================
+  // =================== نافذة السؤال الذكية (نظام الأجراس) ===================
   void _showSafeQuestionDialog(int r, int c) {
     int index = r * cols + c;
     String letter = currentLetters[index];
@@ -981,7 +974,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     if (currentQIndex >= questions.length) currentQIndex = 0; 
     bool isAnswerRevealed = false;
 
-    // متغيرات الجرس والعقوبة
+    // متغيرات الجرس
     int? buzzerTeam;
     int timeLeft = 5;
     Timer? countdownTimer;
@@ -998,12 +991,14 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
 
+            // تنظيف التايمرات
             void cleanup() {
               pollingTimer?.cancel();
               countdownTimer?.cancel();
               FirebaseManager.setQuestionState(false);
             }
 
+            // بداية المؤقت
             void startCountdown() {
               pollingTimer?.cancel();
               timeLeft = 5;
@@ -1013,11 +1008,9 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                   if (timeLeft > 0) {
                     timeLeft--;
                   } else {
-                    // انتهى الوقت بدون إجابة (عقوبة 10 ثواني)
+                    // انتهى الوقت بدون إجابة
                     countdownTimer?.cancel();
-                    int pTeam = buzzerTeam!;
-                    lockedTeams.add(pTeam);
-                    Timer(const Duration(seconds: 10), () => lockedTeams.remove(pTeam));
+                    lockedTeams.add(buzzerTeam!);
                     buzzerTeam = null;
                     FirebaseManager.setQuestionState(true);
                     
@@ -1037,6 +1030,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
               });
             }
 
+            // الاستماع لفايربيس
             void startPolling() {
               FirebaseManager.setQuestionState(true);
               pollingTimer?.cancel();
@@ -1052,6 +1046,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
               });
             }
 
+            // تشغيل الاستماع مرة واحدة عند فتح النافذة
             if (!isInit) {
               isInit = true;
               startPolling();
@@ -1069,6 +1064,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // إذا فيه أحد ضغط، نطلع العداد، وإلا نطلع الحرف
                     if (buzzerTeam != null)
                       Column(
                         children: [
@@ -1085,8 +1081,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                         ],
                       )
                     else if (lockedTeams.length == 2)
-                      // إذا الفريقين معاقبين بنفس الوقت 
-                      const Text('الأجراس مقفلة مؤقتاً ❌⏳', style: TextStyle(fontSize: 28, color: Colors.redAccent, fontWeight: FontWeight.bold))
+                      const Text('انتهت محاولات الفريقين! ❌', style: TextStyle(fontSize: 28, color: Colors.redAccent, fontWeight: FontWeight.bold))
                     else
                       Column(
                         children: [
@@ -1111,6 +1106,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                     ),
                     const SizedBox(height: 30),
                     
+                    // أزرار التحكم بالسؤال
                     if (buzzerTeam == null)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -1124,7 +1120,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                                 currentQIndex = (currentQIndex + 1) % questions.length;
                                 GlobalData.letterQuestionIndex[letter] = currentQIndex; 
                                 isAnswerRevealed = false;
-                                lockedTeams.clear(); 
+                                lockedTeams.clear(); // تصفير الأقفال لسؤال جديد
                                 HostServer.updateData(letter, questions[currentQIndex]['q']!, questions[currentQIndex]['a']!);
                                 FirebaseManager.setQuestionState(true);
                               });
@@ -1145,6 +1141,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
               actionsAlignment: MainAxisAlignment.center,
               actions: buzzerTeam != null 
               ? [
+                  // أزرار التحكم وقت الإجابة
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.green, padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15)),
                     icon: const Icon(Icons.check_circle, color: Colors.white, size: 30),
@@ -1158,7 +1155,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                     },
                   ),
                   const SizedBox(width: 20),
-                  // زر الإجابة الخاطئة (عقوبة 10 ثواني)
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15)),
                     icon: const Icon(Icons.cancel, color: Colors.white, size: 30),
@@ -1166,9 +1162,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                     onPressed: () { 
                       countdownTimer?.cancel();
                       setDialogState(() {
-                        int pTeam = buzzerTeam!;
-                        lockedTeams.add(pTeam);
-                        Timer(const Duration(seconds: 10), () => lockedTeams.remove(pTeam));
+                        lockedTeams.add(buzzerTeam!);
                         buzzerTeam = null;
                         startPolling();
                       });
@@ -1176,6 +1170,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                   ),
                 ]
               : [
+                  // الأزرار اليدوية الاحتياطية (في حال عدم استخدام الجوالات)
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(backgroundColor: colorTeam1, padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15)),
                     onPressed: () { cleanup(); GlobalData.letterQuestionIndex[letter] = (currentQIndex + 1) % questions.length; Navigator.pop(ctx); _makeMove(r, c, 1); HostServer.updateData("-", "اختر حرفاً لتبدأ اللعبة", "-"); },
@@ -1255,6 +1250,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     );
   }
 
+  // اللوجو المائل والأيقوني
   Widget buildHostTitle() {
     return Transform.rotate(
       angle: -0.05, 
@@ -1277,6 +1273,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
           children: [
             Column(
               children: [
+                // الشريط العلوي (تم تحديثه لعرض رابط الموقع بوضوح)
                 Container(
                   height: 70,
                   padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -1284,6 +1281,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      // الفريق الأول
                       Expanded(
                         flex: 1,
                         child: Row(
@@ -1294,7 +1292,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                           ],
                         ),
                       ),
-                      // زر النسخ الأنيق للرابط 📋
+                      // كود الغرفة ورابط الموقع الجديد 🌐
                       Expanded(
                         flex: 1,
                         child: Center(
@@ -1302,25 +1300,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               const Text('ادخل من جوالك على:', style: TextStyle(color: Colors.white54, fontSize: 14, height: 1.0)),
-                              const SizedBox(height: 2),
-                              InkWell(
-                                onTap: () {
-                                  Clipboard.setData(const ClipboardData(text: 'horufgame.netlify.app'));
-                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم نسخ الرابط!', style: TextStyle(fontSize: 16)), backgroundColor: Colors.green));
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                                  decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(8)),
-                                  child: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text('horufgame.netlify.app', style: TextStyle(color: Colors.lightBlueAccent, fontSize: 18, fontWeight: FontWeight.bold, height: 1.2)),
-                                      SizedBox(width: 5),
-                                      Icon(Icons.copy, size: 16, color: Colors.lightBlueAccent),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                              const Text('horufgame.netlify.app', style: TextStyle(color: Colors.lightBlueAccent, fontSize: 18, fontWeight: FontWeight.bold, height: 1.2)),
                               const SizedBox(height: 2),
                               Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -1334,6 +1314,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                           ),
                         ),
                       ),
+                      // الفريق الثاني + الأزرار
                       Expanded(
                         flex: 1,
                         child: Row(
@@ -1370,6 +1351,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                     ],
                   ),
                 ),
+                // منطقة اللعب الديناميكية
                 Expanded(
                   child: LayoutBuilder(
                     builder: (context, constraints) {

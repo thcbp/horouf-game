@@ -6,7 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:math';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:async'; // تم إضافة هذه المكتبة للمؤقت (Timer)
+import 'dart:async'; 
 
 // =================== مدير قاعدة البيانات (السحابة) ===================
 class FirebaseManager {
@@ -204,7 +204,6 @@ class GlobalData {
   ];
 }
 
-// =================== أداة رسم العلامة المائية ===================
 class HexagonPatternPainter extends CustomPainter {
   final Color color;
   final double opacity;
@@ -330,7 +329,6 @@ class MainMenuScreen extends StatelessWidget {
               icon: const Icon(Icons.play_arrow, color: Colors.white),
               label: const Text('انطلق للعب!', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
               onPressed: () async {
-                // تفعيل السحابة فوراً
                 await FirebaseManager.createRoom(t1Controller.text, t2Controller.text);
 
                 String newId = DateTime.now().millisecondsSinceEpoch.toString();
@@ -500,7 +498,6 @@ class MainMenuScreen extends StatelessWidget {
   }
 }
 
-// =================== شاشة السجل ===================
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
   @override
@@ -553,7 +550,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         icon: const Icon(Icons.play_arrow, color: Colors.white),
                         label: const Text('استكمال', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                         onPressed: () async {
-                          // تفعيل السحابة للجولة القديمة
                           FirebaseManager.roomCode = (Random().nextInt(9000) + 1000).toString();
                           await FirebaseManager.setQuestionState(false);
                           
@@ -598,7 +594,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 }
 
-// =================== بنك الأسئلة ===================
 class QuestionBankScreen extends StatefulWidget {
   const QuestionBankScreen({super.key});
   @override
@@ -960,7 +955,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     );
   }
 
-  // =================== نافذة السؤال الذكية (نظام الأجراس) ===================
   void _showSafeQuestionDialog(int r, int c) {
     int index = r * cols + c;
     String letter = currentLetters[index];
@@ -972,7 +966,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     if (currentQIndex >= questions.length) currentQIndex = 0; 
     bool isAnswerRevealed = false;
 
-    // متغيرات الجرس
     int? buzzerTeam;
     int timeLeft = 5;
     Timer? countdownTimer;
@@ -989,14 +982,12 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
 
-            // تنظيف التايمرات
             void cleanup() {
               pollingTimer?.cancel();
               countdownTimer?.cancel();
               FirebaseManager.setQuestionState(false);
             }
 
-            // بداية المؤقت
             void startCountdown() {
               pollingTimer?.cancel();
               timeLeft = 5;
@@ -1006,13 +997,11 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                   if (timeLeft > 0) {
                     timeLeft--;
                   } else {
-                    // انتهى الوقت بدون إجابة
                     countdownTimer?.cancel();
                     lockedTeams.add(buzzerTeam!);
                     buzzerTeam = null;
                     FirebaseManager.setQuestionState(true);
                     
-                    // استئناف الاستماع
                     pollingTimer = Timer.periodic(const Duration(milliseconds: 500), (t) async {
                       String b = await FirebaseManager.checkBuzzer();
                       if (b == "team1" && !lockedTeams.contains(1)) {
@@ -1028,7 +1017,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
               });
             }
 
-            // الاستماع لفايربيس
             void startPolling() {
               FirebaseManager.setQuestionState(true);
               pollingTimer?.cancel();
@@ -1044,7 +1032,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
               });
             }
 
-            // تشغيل الاستماع مرة واحدة عند فتح النافذة
             if (!isInit) {
               isInit = true;
               startPolling();
@@ -1062,7 +1049,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // إذا فيه أحد ضغط، نطلع العداد، وإلا نطلع الحرف
                     if (buzzerTeam != null)
                       Column(
                         children: [
@@ -1104,7 +1090,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                     ),
                     const SizedBox(height: 30),
                     
-                    // أزرار التحكم بالسؤال
                     if (buzzerTeam == null)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -1118,7 +1103,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                                 currentQIndex = (currentQIndex + 1) % questions.length;
                                 GlobalData.letterQuestionIndex[letter] = currentQIndex; 
                                 isAnswerRevealed = false;
-                                lockedTeams.clear(); // تصفير الأقفال لسؤال جديد
+                                lockedTeams.clear(); 
                                 HostServer.updateData(letter, questions[currentQIndex]['q']!, questions[currentQIndex]['a']!);
                                 FirebaseManager.setQuestionState(true);
                               });
@@ -1139,7 +1124,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
               actionsAlignment: MainAxisAlignment.center,
               actions: buzzerTeam != null 
               ? [
-                  // أزرار التحكم وقت الإجابة
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.green, padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15)),
                     icon: const Icon(Icons.check_circle, color: Colors.white, size: 30),
@@ -1168,7 +1152,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                   ),
                 ]
               : [
-                  // الأزرار اليدوية الاحتياطية (في حال عدم استخدام الجوالات)
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(backgroundColor: colorTeam1, padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15)),
                     onPressed: () { cleanup(); GlobalData.letterQuestionIndex[letter] = (currentQIndex + 1) % questions.length; Navigator.pop(ctx); _makeMove(r, c, 1); HostServer.updateData("-", "اختر حرفاً لتبدأ اللعبة", "-"); },
@@ -1248,7 +1231,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     );
   }
 
-  // اللوجو المائل والأيقوني
   Widget buildHostTitle() {
     return Transform.rotate(
       angle: -0.05, 
@@ -1271,7 +1253,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
           children: [
             Column(
               children: [
-                // الشريط العلوي (شفافية 40% وتم تفريغ المنتصف تماماً)
+                // الشريط العلوي 
                 Container(
                   height: 70,
                   padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -1279,7 +1261,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // الفريق الأول
                       Expanded(
                         flex: 1,
                         child: Row(
@@ -1290,20 +1271,11 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                           ],
                         ),
                       ),
-                      // كود الغرفة السري الأونلاين 🌐
-                      Expanded(
+                      // تفريغ مكان الكود عشان اللوجو ياخذ راحته
+                      const Expanded(
                         flex: 1,
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text('كود الغرفة', style: TextStyle(color: Colors.white54, fontSize: 14, height: 1.0)),
-                              Text(FirebaseManager.roomCode, style: const TextStyle(color: Colors.greenAccent, fontSize: 28, letterSpacing: 5, fontWeight: FontWeight.bold, height: 1.0)),
-                            ],
-                          ),
-                        ),
+                        child: SizedBox(),
                       ),
-                      // الفريق الثاني + الأزرار
                       Expanded(
                         flex: 1,
                         child: Row(
@@ -1340,7 +1312,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                     ],
                   ),
                 ),
-                // منطقة اللعب الديناميكية
                 Expanded(
                   child: LayoutBuilder(
                     builder: (context, constraints) {
@@ -1366,7 +1337,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                               painter: HexagonPatternPainter(color: Colors.white, opacity: 0.15),
                             ),
                           ),
-                          // اللوحة تم إنزالها قليلاً للأسفل لحمايتها من اللوجو الكبير
                           Align(
                             alignment: const Alignment(0.0, 0.15), 
                             child: SizedBox(
@@ -1404,7 +1374,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                 ),
               ],
             ),
-            // اللوجو المرفوع والمكبر 
+            
             Positioned(
               top: 5, 
               left: 0, 
@@ -1415,6 +1385,32 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                 ),
               ),
             ),
+
+            // لوحة الكود الجديدة في الزاوية السفلية يمين
+            Positioned(
+              bottom: 20,
+              right: 20,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                decoration: BoxDecoration(
+                  color: const Color(0xCC12121A), 
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: Colors.white24, width: 2),
+                  boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 10)],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    const Text('رابط جرس الفرق 🌐', style: TextStyle(color: Colors.white70, fontSize: 16)),
+                    const Text('horufgame.netlify.app', style: TextStyle(color: Colors.blueAccent, fontSize: 24, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 10),
+                    const Text('كود الغرفة 🔑', style: TextStyle(color: Colors.white70, fontSize: 16)),
+                    Text(FirebaseManager.roomCode, style: const TextStyle(color: Colors.greenAccent, fontSize: 40, letterSpacing: 5, fontWeight: FontWeight.bold, height: 1.0)),
+                  ],
+                ),
+              ),
+            ),
+
           ],
         ),
       ),

@@ -246,7 +246,7 @@ class HexagonPatternPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
+    return false; // تم إصلاح دالة shouldRepaint المفقودة
   }
 }
 
@@ -437,17 +437,18 @@ class MainMenuScreen extends StatelessWidget {
                     child: Text('لعبة الحروف', style: GoogleFonts.lalezar(fontSize: 85, color: Colors.white, shadows: [const Shadow(color: Color(0xFF311B92), blurRadius: 0, offset: Offset(4, 5))])),
                   ),
                   const SizedBox(height: 15),
+                  // تعديل رابط الهوست كما طلبت
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(15)),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text('تم ربط السيرفر السحابي بنجاح ☁️', style: TextStyle(fontSize: 20, color: Colors.greenAccent, fontWeight: FontWeight.bold)),
+                        const Text('شاشة المضيف:  http://localhost:8080', style: TextStyle(fontSize: 20, color: Colors.greenAccent, fontWeight: FontWeight.bold)),
                         const SizedBox(width: 20),
                         IconButton(icon: const Icon(Icons.copy, color: Colors.white), tooltip: 'نسخ رابط الشاشة السرية', onPressed: () {
                             Clipboard.setData(const ClipboardData(text: 'http://localhost:8080'));
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم نسخ رابط شاشتك السرية!', style: TextStyle(fontSize: 16)), backgroundColor: Colors.green));
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم نسخ رابط شاشة المضيف!', style: TextStyle(fontSize: 16)), backgroundColor: Colors.green));
                         })
                       ],
                     ),
@@ -962,7 +963,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     );
   }
 
-  // =================== نافذة السؤال الذكية (نظام الأجراس) ===================
+  // =================== نافذة السؤال الذكية مع الـ 10 ثواني ===================
   void _showSafeQuestionDialog(int r, int c) {
     int index = r * cols + c;
     String letter = currentLetters[index];
@@ -974,9 +975,9 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     if (currentQIndex >= questions.length) currentQIndex = 0; 
     bool isAnswerRevealed = false;
 
-    // متغيرات الجرس
+    // متغيرات الجرس وتعديل الوقت إلى 10 ثواني ⏱️
     int? buzzerTeam;
-    int timeLeft = 5;
+    int timeLeft = 10;
     Timer? countdownTimer;
     Timer? pollingTimer;
     Set<int> lockedTeams = {};
@@ -991,30 +992,26 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
 
-            // تنظيف التايمرات
             void cleanup() {
               pollingTimer?.cancel();
               countdownTimer?.cancel();
               FirebaseManager.setQuestionState(false);
             }
 
-            // بداية المؤقت
             void startCountdown() {
               pollingTimer?.cancel();
-              timeLeft = 5;
+              timeLeft = 10; // تم تعديل المؤقت إلى 10 ثواني
               countdownTimer?.cancel();
               countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
                 setDialogState(() {
                   if (timeLeft > 0) {
                     timeLeft--;
                   } else {
-                    // انتهى الوقت بدون إجابة
                     countdownTimer?.cancel();
                     lockedTeams.add(buzzerTeam!);
                     buzzerTeam = null;
                     FirebaseManager.setQuestionState(true);
                     
-                    // استئناف الاستماع
                     pollingTimer = Timer.periodic(const Duration(milliseconds: 500), (t) async {
                       String b = await FirebaseManager.checkBuzzer();
                       if (b == "team1" && !lockedTeams.contains(1)) {
@@ -1030,7 +1027,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
               });
             }
 
-            // الاستماع لفايربيس
             void startPolling() {
               FirebaseManager.setQuestionState(true);
               pollingTimer?.cancel();
@@ -1046,7 +1042,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
               });
             }
 
-            // تشغيل الاستماع مرة واحدة عند فتح النافذة
             if (!isInit) {
               isInit = true;
               startPolling();
@@ -1064,7 +1059,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // إذا فيه أحد ضغط، نطلع العداد، وإلا نطلع الحرف
                     if (buzzerTeam != null)
                       Column(
                         children: [
@@ -1073,7 +1067,8 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                           Stack(
                             alignment: Alignment.center,
                             children: [
-                              SizedBox(width: 80, height: 80, child: CircularProgressIndicator(value: timeLeft / 5, color: borderColor, strokeWidth: 8)),
+                              // قيمة الدائرة تم تحديثها لتقسيمها على 10
+                              SizedBox(width: 80, height: 80, child: CircularProgressIndicator(value: timeLeft / 10, color: borderColor, strokeWidth: 8)),
                               Text('$timeLeft', style: TextStyle(fontSize: 40, color: borderColor, fontWeight: FontWeight.bold)),
                             ],
                           ),
@@ -1106,7 +1101,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                     ),
                     const SizedBox(height: 30),
                     
-                    // أزرار التحكم بالسؤال
                     if (buzzerTeam == null)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -1120,7 +1114,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                                 currentQIndex = (currentQIndex + 1) % questions.length;
                                 GlobalData.letterQuestionIndex[letter] = currentQIndex; 
                                 isAnswerRevealed = false;
-                                lockedTeams.clear(); // تصفير الأقفال لسؤال جديد
+                                lockedTeams.clear(); 
                                 HostServer.updateData(letter, questions[currentQIndex]['q']!, questions[currentQIndex]['a']!);
                                 FirebaseManager.setQuestionState(true);
                               });
@@ -1141,7 +1135,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
               actionsAlignment: MainAxisAlignment.center,
               actions: buzzerTeam != null 
               ? [
-                  // أزرار التحكم وقت الإجابة
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.green, padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15)),
                     icon: const Icon(Icons.check_circle, color: Colors.white, size: 30),
@@ -1170,7 +1163,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                   ),
                 ]
               : [
-                  // الأزرار اليدوية الاحتياطية (في حال عدم استخدام الجوالات)
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(backgroundColor: colorTeam1, padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15)),
                     onPressed: () { cleanup(); GlobalData.letterQuestionIndex[letter] = (currentQIndex + 1) % questions.length; Navigator.pop(ctx); _makeMove(r, c, 1); HostServer.updateData("-", "اختر حرفاً لتبدأ اللعبة", "-"); },
@@ -1250,7 +1242,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     );
   }
 
-  // اللوجو المائل والأيقوني
+  // اللوجو المائل والأيقوني المرفوع للأعلى
   Widget buildHostTitle() {
     return Transform.rotate(
       angle: -0.05, 
@@ -1273,80 +1265,77 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
           children: [
             Column(
               children: [
-                // الشريط العلوي (تم تحديثه لعرض رابط الموقع بوضوح)
+                // الشريط العلوي مع ترتيب الرابط في الزاوية اليمنى القصوى
                 Container(
                   height: 70,
-                  padding: const EdgeInsets.symmetric(horizontal: 30),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   color: const Color(0x9912121A), 
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // الفريق الأول
-                      Expanded(
-                        flex: 1,
-                        child: Row(
-                          children: [
-                            IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white54, size: 30), onPressed: () => Navigator.pop(context)),
-                            const SizedBox(width: 10),
-                            Text(widget.team1Name, style: TextStyle(color: colorTeam1, fontSize: 28, fontWeight: FontWeight.bold)),
-                          ],
-                        ),
+                      // القسم الأيسر: زر العودة والفريق الأول
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white54, size: 30), onPressed: () => Navigator.pop(context)),
+                          const SizedBox(width: 5),
+                          Text(widget.team1Name, style: TextStyle(color: colorTeam1, fontSize: 26, fontWeight: FontWeight.bold)),
+                        ],
                       ),
-                      // كود الغرفة ورابط الموقع الجديد 🌐
-                      Expanded(
-                        flex: 1,
-                        child: Center(
-                          child: Column(
+                      
+                      // مساحة المنتصف (فارغة ليتنفس اللوجو)
+                      const Spacer(),
+                      
+                      // القسم الأيمن (تم نقل الرابط والأدوات للزاوية اليمنى)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(widget.team2Name, style: TextStyle(color: colorTeam2, fontSize: 26, fontWeight: FontWeight.bold)),
+                          const SizedBox(width: 10),
+                          IconButton(icon: const Icon(Icons.settings, color: Colors.white, size: 30), tooltip: 'تغيير ألوان الفرق', onPressed: _showGameSettings),
+                          IconButton(icon: const Icon(Icons.refresh, color: Colors.redAccent, size: 30), onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                backgroundColor: const Color(0xFF4A148C),
+                                title: const Text('إعادة الجولة', style: TextStyle(color: Colors.white)),
+                                content: const Text('هل تريد تصفير اللوحة؟', style: TextStyle(color: Colors.white)),
+                                actions: [
+                                  TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
+                                  ElevatedButton(onPressed: () { Navigator.pop(ctx); _resetGame(); }, style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent), child: const Text('تصفير', style: TextStyle(color: Colors.white))),
+                                ]
+                              )
+                            );
+                          }),
+                          // فاصل بصري
+                          Container(width: 2, height: 40, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 10)),
+                          // الرابط وكود الغرفة قابل للنسخ
+                          Column(
                             mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              const Text('ادخل من جوالك على:', style: TextStyle(color: Colors.white54, fontSize: 14, height: 1.0)),
-                              const Text('horufgame.netlify.app', style: TextStyle(color: Colors.lightBlueAccent, fontSize: 18, fontWeight: FontWeight.bold, height: 1.2)),
-                              const SizedBox(height: 2),
                               Row(
-                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text('horufgame.netlify.app', style: TextStyle(color: Colors.lightBlueAccent, fontSize: 16, fontWeight: FontWeight.bold)),
+                                  const SizedBox(width: 5),
+                                  InkWell(
+                                    onTap: () {
+                                      Clipboard.setData(const ClipboardData(text: 'https://horufgame.netlify.app'));
+                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم نسخ رابط اللاعبين!'), backgroundColor: Colors.green));
+                                    },
+                                    child: const Icon(Icons.copy, size: 18, color: Colors.white70),
+                                  )
+                                ],
+                              ),
+                              Row(
                                 children: [
                                   const Text('كود الغرفة:', style: TextStyle(color: Colors.white54, fontSize: 14)),
-                                  const SizedBox(width: 8),
-                                  Text(FirebaseManager.roomCode, style: const TextStyle(color: Colors.greenAccent, fontSize: 24, letterSpacing: 5, fontWeight: FontWeight.bold)),
+                                  const SizedBox(width: 5),
+                                  SelectableText(FirebaseManager.roomCode, style: const TextStyle(color: Colors.greenAccent, fontSize: 18, letterSpacing: 3, fontWeight: FontWeight.bold)),
                                 ],
                               ),
                             ],
                           ),
-                        ),
-                      ),
-                      // الفريق الثاني + الأزرار
-                      Expanded(
-                        flex: 1,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Text(widget.team2Name, style: TextStyle(color: colorTeam2, fontSize: 28, fontWeight: FontWeight.bold)),
-                            const SizedBox(width: 15),
-                            IconButton(
-                              icon: const Icon(Icons.settings, color: Colors.white, size: 35),
-                              tooltip: 'تغيير ألوان الفرق',
-                              onPressed: _showGameSettings, 
-                            ),
-                            const SizedBox(width: 5),
-                            IconButton(
-                              icon: const Icon(Icons.refresh, color: Colors.redAccent, size: 35), 
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (ctx) => AlertDialog(
-                                    backgroundColor: const Color(0xFF4A148C),
-                                    title: const Text('إعادة الجولة', style: TextStyle(color: Colors.white)),
-                                    content: const Text('هل تريد تصفير اللوحة؟', style: TextStyle(color: Colors.white)),
-                                    actions: [
-                                      TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
-                                      ElevatedButton(onPressed: () { Navigator.pop(ctx); _resetGame(); }, style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent), child: const Text('تصفير', style: TextStyle(color: Colors.white))),
-                                    ]
-                                  )
-                                );
-                              }
-                            ),
-                          ],
-                        ),
+                        ],
                       ),
                     ],
                   ),

@@ -256,7 +256,9 @@ class HexagonPatternPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return false; 
+  }
 }
 
 // =================== بداية التطبيق ===================
@@ -321,7 +323,7 @@ class MainMenuScreen extends StatelessWidget {
         return AlertDialog(
           backgroundColor: const Color(0xFF4A148C),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: Colors.white24, width: 2)),
-          title: const Text('⚙️ إعدادات الجولة الجديدة', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold)),
+          title: Text('⚙️ إعدادات الجولة الجديدة', textAlign: TextAlign.center, style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -339,7 +341,7 @@ class MainMenuScreen extends StatelessWidget {
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent, padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
               icon: const Icon(Icons.play_arrow, color: Colors.white),
-              label: const Text('انطلق للعب!', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              label: Text('انطلق للعب!', style: GoogleFonts.cairo(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
               onPressed: () async {
                 await FirebaseManager.createRoom(t1Controller.text, t2Controller.text);
 
@@ -365,7 +367,7 @@ class MainMenuScreen extends StatelessWidget {
                 )));
               },
             ),
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء', style: TextStyle(color: Colors.white54)))
+            TextButton(onPressed: () => Navigator.pop(context), child: Text('إلغاء', style: GoogleFonts.cairo(color: Colors.white54)))
           ],
         );
       }
@@ -378,33 +380,33 @@ class MainMenuScreen extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF4A148C),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
+        title: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Text('دليل المضيف', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            SizedBox(width: 10),
-            Icon(Icons.lightbulb, color: Colors.amber, size: 30),
+            Text('دليل المضيف', style: GoogleFonts.cairo(color: Colors.white, fontWeight: FontWeight.bold)),
+            const SizedBox(width: 10),
+            const Icon(Icons.lightbulb, color: Colors.amber, size: 30),
           ],
         ),
         content: Directionality( 
           textDirection: TextDirection.rtl,
-          child: const SingleChildScrollView(
+          child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('1️⃣ الشاشة السرية:', style: TextStyle(color: Colors.orangeAccent, fontSize: 18, fontWeight: FontWeight.bold)),
-                Text('انسخ رابط المضيف والصقه في متصفحك. هذه الشاشة لك وحدك لتقرأ الإجابات.\n', style: TextStyle(color: Colors.white70, fontSize: 16)),
-                Text('2️⃣ التعديل والتخصيص:', style: TextStyle(color: Colors.orangeAccent, fontSize: 18, fontWeight: FontWeight.bold)),
-                Text('اضغط على أيقونة الإعدادات العلوية أثناء اللعب لتغيير ألوان الفرق.\n', style: TextStyle(color: Colors.white70, fontSize: 16)),
-                Text('3️⃣ تصحيح الأخطاء:', style: TextStyle(color: Colors.orangeAccent, fontSize: 18, fontWeight: FontWeight.bold)),
-                Text('أخطأت في إعطاء النقطة؟ اضغط على الخلية لتعديلها أو مسحها.', style: TextStyle(color: Colors.white70, fontSize: 16)),
+                Text('1️⃣ الشاشة السرية:', style: GoogleFonts.cairo(color: Colors.orangeAccent, fontSize: 18, fontWeight: FontWeight.bold)),
+                Text('انسخ رابط المضيف والصقه في متصفحك. هذه الشاشة لك وحدك لتقرأ الإجابات.\n', style: GoogleFonts.cairo(color: Colors.white70, fontSize: 16)),
+                Text('2️⃣ التعديل والتخصيص:', style: GoogleFonts.cairo(color: Colors.orangeAccent, fontSize: 18, fontWeight: FontWeight.bold)),
+                Text('اضغط على أيقونة الإعدادات العلوية أثناء اللعب لتغيير ألوان الفرق.\n', style: GoogleFonts.cairo(color: Colors.white70, fontSize: 16)),
+                Text('3️⃣ تصحيح الأخطاء:', style: GoogleFonts.cairo(color: Colors.orangeAccent, fontSize: 18, fontWeight: FontWeight.bold)),
+                Text('أخطأت في إعطاء النقطة؟ اضغط على الخلية لتعديلها أو مسحها.', style: GoogleFonts.cairo(color: Colors.white70, fontSize: 16)),
               ],
             ),
           ),
         ),
         actions: [
-          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent), onPressed: () => Navigator.pop(ctx), child: const Text('فهمت، شكراً!', style: TextStyle(color: Colors.white)))
+          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent), onPressed: () => Navigator.pop(ctx), child: Text('فهمت، شكراً!', style: GoogleFonts.cairo(color: Colors.white)))
         ],
       )
     );
@@ -451,11 +453,11 @@ class MainMenuScreen extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text('شاشة المضيف:  http://localhost:8080', style: TextStyle(fontSize: 20, color: Colors.greenAccent, fontWeight: FontWeight.bold)),
+                        Text('شاشة المضيف:  http://localhost:8080', style: GoogleFonts.cairo(fontSize: 20, color: Colors.greenAccent, fontWeight: FontWeight.bold)),
                         const SizedBox(width: 20),
                         IconButton(icon: const Icon(Icons.copy, color: Colors.white), tooltip: 'نسخ رابط الشاشة السرية', onPressed: () {
                             Clipboard.setData(const ClipboardData(text: 'http://localhost:8080'));
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم نسخ رابط شاشة المضيف!', style: TextStyle(fontSize: 16)), backgroundColor: Colors.green));
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم نسخ رابط شاشة المضيف!', style: GoogleFonts.cairo(fontSize: 16)), backgroundColor: Colors.green));
                         })
                       ],
                     ),
@@ -466,7 +468,7 @@ class MainMenuScreen extends StatelessWidget {
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)), elevation: 8),
                       icon: const Icon(Icons.play_circle_fill, size: 35, color: Colors.white),
-                      label: const Text('ابدأ اللعبة الأونلاين', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
+                      label: Text('ابدأ اللعبة', style: GoogleFonts.cairo(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
                       onPressed: () => _showStartSettings(context),
                     ),
                   ),
@@ -476,7 +478,7 @@ class MainMenuScreen extends StatelessWidget {
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7E57C2), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
                       icon: const Icon(Icons.storage, size: 28, color: Colors.white),
-                      label: const Text('بنك الأسئلة', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+                      label: Text('بنك الأسئلة', style: GoogleFonts.cairo(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
                       onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const QuestionBankScreen())),
                     ),
                   ),
@@ -486,7 +488,7 @@ class MainMenuScreen extends StatelessWidget {
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF5E35B1), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
                       icon: const Icon(Icons.history, size: 28, color: Colors.white),
-                      label: const Text('السجل والأقيام', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+                      label: Text('السجل والأقيام', style: GoogleFonts.cairo(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
                       onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const HistoryScreen())),
                     ),
                   ),
@@ -496,7 +498,7 @@ class MainMenuScreen extends StatelessWidget {
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4527A0), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
                       icon: const Icon(Icons.help_outline, size: 28, color: Colors.amberAccent),
-                      label: const Text('دليل المضيف', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+                      label: Text('دليل المضيف', style: GoogleFonts.cairo(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
                       onPressed: () => _showGuideDialog(context),
                     ),
                   ),
@@ -525,11 +527,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF4A148C), 
         elevation: 0, 
-        title: const Text('سجل الجولات السابقة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)), 
+        title: Text('سجل الجولات السابقة', style: GoogleFonts.cairo(fontWeight: FontWeight.bold, color: Colors.white)), 
         centerTitle: true
       ),
       body: history.isEmpty 
-        ? const Center(child: Text('لا توجد جولات محفوظة حالياً', style: TextStyle(color: Colors.white54, fontSize: 24)))
+        ? Center(child: Text('لا توجد جولات محفوظة حالياً', style: GoogleFonts.cairo(color: Colors.white54, fontSize: 24)))
         : ListView.builder(
             padding: const EdgeInsets.all(20),
             itemCount: history.length,
@@ -545,14 +547,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 margin: const EdgeInsets.only(bottom: 15),
                 child: ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
-                  title: Text('${game['team1']} 🆚 ${game['team2']}', style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                  title: Text('${game['team1']} 🆚 ${game['team2']}', style: GoogleFonts.cairo(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 8),
-                      Text('المضيف: ${game['host']} | التاريخ: ${game['date']}', style: const TextStyle(color: Colors.white70, fontSize: 16)),
+                      Text('المضيف: ${game['host']} | التاريخ: ${game['date']}', style: GoogleFonts.cairo(color: Colors.white70, fontSize: 16)),
                       const SizedBox(height: 8),
-                      Text(status, style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 18)),
+                      Text(status, style: GoogleFonts.cairo(color: statusColor, fontWeight: FontWeight.bold, fontSize: 18)),
                     ],
                   ),
                   trailing: Row(
@@ -561,7 +563,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
                         icon: const Icon(Icons.play_arrow, color: Colors.white),
-                        label: const Text('استكمال', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                        label: Text('استكمال', style: GoogleFonts.cairo(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                         onPressed: () async {
                           await FirebaseManager.createRoom(game['team1'], game['team2']);
                           
@@ -579,9 +581,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             context: context,
                             builder: (ctx) => AlertDialog(
                               backgroundColor: const Color(0xFF4A148C),
-                              title: const Text('حذف الجولة؟', style: TextStyle(color: Colors.white)),
+                              title: Text('حذف الجولة؟', style: GoogleFonts.cairo(color: Colors.white)),
                               actions: [
-                                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء', style: TextStyle(fontSize: 16, color: Colors.white70))),
+                                TextButton(onPressed: () => Navigator.pop(ctx), child: Text('إلغاء', style: GoogleFonts.cairo(fontSize: 16, color: Colors.white70))),
                                 ElevatedButton(
                                   style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
                                   onPressed: () {
@@ -589,7 +591,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                     DataManager.saveHistory();
                                     Navigator.pop(ctx);
                                   },
-                                  child: const Text('نعم، احذف', style: TextStyle(color: Colors.white, fontSize: 16)),
+                                  child: Text('نعم، احذف', style: GoogleFonts.cairo(color: Colors.white, fontSize: 16)),
                                 )
                               ]
                             )
@@ -630,19 +632,19 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
             return AlertDialog(
               backgroundColor: const Color(0xFF4A148C),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15), side: const BorderSide(color: Colors.white12)),
-              title: Text(isEditing ? 'تعديل السؤال' : 'إضافة سؤال', style: const TextStyle(color: Colors.white)),
+              title: Text(isEditing ? 'تعديل السؤال' : 'إضافة سؤال', style: GoogleFonts.cairo(color: Colors.white)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   DropdownButton<String>(
                     value: selectedLetter,
                     dropdownColor: const Color(0xFF512DA8),
-                    style: const TextStyle(color: Colors.orangeAccent, fontSize: 24, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.cairo(color: Colors.orangeAccent, fontSize: 24, fontWeight: FontWeight.bold),
                     items: GlobalData.allArabicLetters.map((String value) => DropdownMenuItem<String>(value: value, child: Text("حرف ( $value )"))).toList(),
                     onChanged: isEditing ? null : (newValue) => setDialogState(() => selectedLetter = newValue!),
                   ),
-                  TextField(controller: qController, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'السؤال', labelStyle: TextStyle(color: Colors.white70))),
-                  TextField(controller: aController, style: const TextStyle(color: Colors.greenAccent), decoration: const InputDecoration(labelText: 'الإجابة', labelStyle: TextStyle(color: Colors.greenAccent))),
+                  TextField(controller: qController, style: GoogleFonts.cairo(color: Colors.white), decoration: const InputDecoration(labelText: 'السؤال', labelStyle: TextStyle(color: Colors.white70))),
+                  TextField(controller: aController, style: GoogleFonts.cairo(color: Colors.greenAccent), decoration: const InputDecoration(labelText: 'الإجابة', labelStyle: TextStyle(color: Colors.greenAccent))),
                 ],
               ),
               actions: [
@@ -662,7 +664,7 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
                       Navigator.pop(context);
                     }
                   },
-                  child: const Text('حفظ', style: TextStyle(color: Colors.white, fontSize: 16)),
+                  child: Text('حفظ', style: GoogleFonts.cairo(color: Colors.white, fontSize: 16)),
                 )
               ],
             );
@@ -689,9 +691,9 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
             Text('تحذير خطير!', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
           ],
         ),
-        content: const Text('هل أنت متأكد أنك تريد حذف جميع الأسئلة من التطبيق؟', style: TextStyle(color: Colors.white, fontSize: 18)),
+        content: Text('هل أنت متأكد أنك تريد حذف جميع الأسئلة من التطبيق؟', style: GoogleFonts.cairo(color: Colors.white, fontSize: 18)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء', style: TextStyle(color: Colors.white54))),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('إلغاء', style: GoogleFonts.cairo(color: Colors.white54))),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
             onPressed: () async {
@@ -700,9 +702,9 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
               GlobalData.questionBank.forEach((k, v) => backupBank[k] = List.from(v.map((item) => Map<String, String>.from(item))));
               setState(() => GlobalData.questionBank.clear());
               await DataManager.saveBank();
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('تم مسح جميع الأسئلة بنجاح!', style: TextStyle(fontSize: 16)), backgroundColor: const Color(0xFF512DA8), duration: const Duration(seconds: 7), action: SnackBarAction(label: 'تراجع ↩️', textColor: Colors.orangeAccent, onPressed: () async { setState(() => GlobalData.questionBank = Map.from(backupBank)); await DataManager.saveBank(); })));
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم مسح جميع الأسئلة بنجاح!', style: GoogleFonts.cairo(fontSize: 16)), backgroundColor: const Color(0xFF512DA8), duration: const Duration(seconds: 7), action: SnackBarAction(label: 'تراجع ↩️', textColor: Colors.orangeAccent, onPressed: () async { setState(() => GlobalData.questionBank = Map.from(backupBank)); await DataManager.saveBank(); })));
             },
-            child: const Text('نعم، احذف الكل', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text('نعم، احذف الكل', style: GoogleFonts.cairo(color: Colors.white, fontWeight: FontWeight.bold)),
           )
         ]
       )
@@ -723,7 +725,7 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
           });
         });
         await DataManager.saveBank();
-        if (mounted) { Navigator.pop(context); ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم استيراد الملف الجاهز بنجاح!'), backgroundColor: Colors.green)); }
+        if (mounted) { Navigator.pop(context); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم استيراد الملف الجاهز بنجاح!', style: GoogleFonts.cairo()), backgroundColor: Colors.green)); }
       }
     } catch (e) {}
   }
@@ -736,13 +738,13 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
         return AlertDialog(
           backgroundColor: const Color(0xFF4A148C),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15), side: const BorderSide(color: Colors.white12)),
-          title: const Text('استيراد الأسئلة', style: TextStyle(color: Colors.white)),
+          title: Text('استيراد الأسئلة', style: GoogleFonts.cairo(color: Colors.white)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               SizedBox(width: double.maxFinite, child: TextField(controller: jsonController, maxLines: 7, style: const TextStyle(color: Colors.white70, fontFamily: 'monospace'), decoration: const InputDecoration(hintText: 'الصق كود JSON هنا...', border: OutlineInputBorder()))),
               const Padding(padding: EdgeInsets.symmetric(vertical: 15), child: Text('--- أو ---', style: TextStyle(color: Colors.white54))),
-              SizedBox(width: double.infinity, child: ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7E57C2), padding: const EdgeInsets.symmetric(vertical: 15)), icon: const Icon(Icons.folder_open, color: Colors.white), label: const Text('استيراد من ملف JSON جاهز', style: TextStyle(color: Colors.white, fontSize: 18)), onPressed: _importFromJsonFile)),
+              SizedBox(width: double.infinity, child: ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7E57C2), padding: const EdgeInsets.symmetric(vertical: 15)), icon: const Icon(Icons.folder_open, color: Colors.white), label: Text('استيراد من ملف JSON جاهز', style: GoogleFonts.cairo(color: Colors.white, fontSize: 18)), onPressed: _importFromJsonFile)),
             ],
           ),
           actions: [
@@ -760,12 +762,12 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
                   });
                   await DataManager.saveBank();
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم الاستيراد بنجاح!')));
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم الاستيراد بنجاح!', style: GoogleFonts.cairo())));
                 } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('خطأ في صيغة الـ JSON المنسوخة!'), backgroundColor: Colors.red));
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطأ في صيغة الـ JSON المنسوخة!', style: GoogleFonts.cairo()), backgroundColor: Colors.red));
                 }
               },
-              child: const Text('حفظ النص المنسوخ', style: TextStyle(color: Colors.white, fontSize: 16)),
+              child: Text('حفظ النص المنسوخ', style: GoogleFonts.cairo(color: Colors.white, fontSize: 16)),
             )
           ],
         );
@@ -779,7 +781,7 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF4A148C),
         elevation: 0,
-        title: const Text('بنك الأسئلة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        title: Text('بنك الأسئلة', style: GoogleFonts.cairo(fontWeight: FontWeight.bold, color: Colors.white)),
         centerTitle: true,
         actions: [
           IconButton(
@@ -787,14 +789,14 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
             tooltip: 'خلط وإعادة تعيين الأسئلة', 
             onPressed: () {
               DataManager.resetAndShuffleBank();
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم خلط الأسئلة! ستبدأ الآن بأسئلة جديدة للجميع.', style: TextStyle(fontSize: 16)), backgroundColor: Colors.green));
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم خلط الأسئلة! ستبدأ الآن بأسئلة جديدة للجميع.', style: GoogleFonts.cairo(fontSize: 16)), backgroundColor: Colors.green));
             }
           ),
           IconButton(icon: const Icon(Icons.data_object, color: Colors.blueAccent, size: 28), tooltip: 'استيراد', onPressed: _showImportDialog),
           IconButton(icon: const Icon(Icons.delete_sweep, color: Colors.redAccent, size: 28), tooltip: 'حذف الكل', onPressed: _clearAllQuestions),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(backgroundColor: Colors.orangeAccent, icon: const Icon(Icons.add, color: Colors.white), label: const Text('إضافة سؤال', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)), onPressed: () => _showQuestionDialog()),
+      floatingActionButton: FloatingActionButton.extended(backgroundColor: Colors.orangeAccent, icon: const Icon(Icons.add, color: Colors.white), label: Text('إضافة سؤال', style: GoogleFonts.cairo(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)), onPressed: () => _showQuestionDialog()),
       body: ListView.builder(
         padding: const EdgeInsets.all(20),
         itemCount: GlobalData.allArabicLetters.length,
@@ -806,13 +808,13 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             margin: const EdgeInsets.only(bottom: 10),
             child: ExpansionTile(
-              title: Text('حرف ( $letter )', style: const TextStyle(color: Colors.orangeAccent, fontSize: 24, fontWeight: FontWeight.bold)),
-              subtitle: Text('عدد الأسئلة: ${questions.length}', style: const TextStyle(color: Colors.white54, fontSize: 16)),
+              title: Text('حرف ( $letter )', style: GoogleFonts.cairo(color: Colors.orangeAccent, fontSize: 24, fontWeight: FontWeight.bold)),
+              subtitle: Text('عدد الأسئلة: ${questions.length}', style: GoogleFonts.cairo(color: Colors.white54, fontSize: 16)),
               children: questions.asMap().entries.map((entry) {
                 int qIndex = entry.key; var q = entry.value;
                 return ListTile(
-                  title: Text(q['q']!, style: const TextStyle(color: Colors.white, fontSize: 20)),
-                  subtitle: Text('الإجابة: ${q['a']}', style: const TextStyle(color: Colors.greenAccent, fontSize: 18)),
+                  title: Text(q['q']!, style: GoogleFonts.cairo(color: Colors.white, fontSize: 20)),
+                  subtitle: Text('الإجابة: ${q['a']}', style: GoogleFonts.cairo(color: Colors.greenAccent, fontSize: 18)),
                   leading: const Icon(Icons.help_outline, color: Colors.orangeAccent),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -859,6 +861,9 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
   late Color colorTeam1;
   late Color colorTeam2;
 
+  // متغير للتحكم بإظهار/إخفاء كود الغرفة في الشريط العلوي (وضع الستريمر)
+  bool isRoomCodeHidden = false;
+
   @override
   void initState() {
     super.initState();
@@ -890,11 +895,11 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
         return AlertDialog(
           backgroundColor: const Color(0xFF4A148C),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text('إعدادات الألوان', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          title: Text('إعدادات الألوان', textAlign: TextAlign.center, style: GoogleFonts.cairo(color: Colors.white, fontWeight: FontWeight.bold)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('لون ${widget.team1Name}', style: const TextStyle(color: Colors.white, fontSize: 18)),
+              Text('لون ${widget.team1Name}', style: GoogleFonts.cairo(color: Colors.white, fontSize: 18)),
               const SizedBox(height: 10),
               Wrap(
                 spacing: 10,
@@ -904,7 +909,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                 )).toList(),
               ),
               const Divider(color: Colors.white24, height: 30),
-              Text('لون ${widget.team2Name}', style: const TextStyle(color: Colors.white, fontSize: 18)),
+              Text('لون ${widget.team2Name}', style: GoogleFonts.cairo(color: Colors.white, fontSize: 18)),
               const SizedBox(height: 10),
               Wrap(
                 spacing: 10,
@@ -935,13 +940,13 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF311B92),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: Colors.white24)),
-        title: Text('تعديل خلية الحرف ( $letter )', style: const TextStyle(color: Colors.white, fontSize: 24), textAlign: TextAlign.center),
+        title: Text('تعديل خلية الحرف ( $letter )', style: GoogleFonts.cairo(color: Colors.white, fontSize: 24), textAlign: TextAlign.center),
         actionsAlignment: MainAxisAlignment.center,
         actions: [
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: colorTeam1),
             onPressed: () { Navigator.pop(ctx); _makeMove(r, c, 1); },
-            child: Text('لـ ${widget.team1Name}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text('لـ ${widget.team1Name}', style: GoogleFonts.cairo(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
@@ -956,19 +961,19 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                 DataManager.saveHistory(); 
               }); 
             },
-            child: const Text('مسح الخلية', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text('مسح الخلية', style: GoogleFonts.cairo(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: colorTeam2),
             onPressed: () { Navigator.pop(ctx); _makeMove(r, c, 2); },
-            child: Text('لـ ${widget.team2Name}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text('لـ ${widget.team2Name}', style: GoogleFonts.cairo(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       )
     );
   }
 
-  // =================== نافذة السؤال الذكية (نظام الأجراس الجديد) ===================
+  // =================== نافذة السؤال الذكية مع الـ 5 ثواني ونظام الأسماء ===================
   void _showSafeQuestionDialog(int r, int c) {
     int index = r * cols + c;
     String letter = currentLetters[index];
@@ -980,7 +985,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     if (currentQIndex >= questions.length) currentQIndex = 0; 
     bool isAnswerRevealed = false;
 
-    // الخوارزمية الجديدة
     int? activeBuzzerTeam;
     String activeBuzzerName = "";
     int answerTime = 5;
@@ -1077,13 +1081,20 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                     if (activeBuzzerTeam != null)
                       Column(
                         children: [
-                          Text('($activeBuzzerName) من فريق $teamName يجاوب! 🏃‍♂️', textAlign: TextAlign.center, style: TextStyle(fontSize: 32, color: borderColor, fontWeight: FontWeight.bold)),
+                          Directionality(
+                            textDirection: TextDirection.rtl,
+                            child: Text(
+                              '($activeBuzzerName) من فريق $teamName يجاوب! 🏃‍♂️', 
+                              textAlign: TextAlign.center, 
+                              style: GoogleFonts.cairo(fontSize: 32, color: borderColor, fontWeight: FontWeight.bold)
+                            ),
+                          ),
                           const SizedBox(height: 20),
                           Stack(
                             alignment: Alignment.center,
                             children: [
                               SizedBox(width: 80, height: 80, child: CircularProgressIndicator(value: answerTime / 5, color: borderColor, strokeWidth: 8)),
-                              Text('$answerTime', style: TextStyle(fontSize: 40, color: borderColor, fontWeight: FontWeight.bold)),
+                              Text('$answerTime', style: GoogleFonts.cairo(fontSize: 40, color: borderColor, fontWeight: FontWeight.bold)),
                             ],
                           ),
                           const SizedBox(height: 20),
@@ -1095,29 +1106,38 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                           Container(
                             padding: const EdgeInsets.all(25),
                             decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF4A148C)),
-                            child: Text(letter, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 60, fontWeight: FontWeight.bold)),
+                            child: Text(letter, textAlign: TextAlign.center, style: GoogleFonts.cairo(color: Colors.white, fontSize: 60, fontWeight: FontWeight.bold)),
                           ),
                           const SizedBox(height: 15),
                           if (penalty1 > 0 || penalty2 > 0)
                              Column(
                                children: [
-                                 if (penalty1 > 0) Text('عقوبة ${widget.team1Name}: $penalty1 ثواني 🚫', style: const TextStyle(color: Colors.redAccent, fontSize: 18, fontWeight: FontWeight.bold)),
-                                 if (penalty2 > 0) Text('عقوبة ${widget.team2Name}: $penalty2 ثواني 🚫', style: const TextStyle(color: Colors.redAccent, fontSize: 18, fontWeight: FontWeight.bold)),
+                                 if (penalty1 > 0) Directionality(textDirection: TextDirection.rtl, child: Text('عقوبة ${widget.team1Name}: $penalty1 ثواني 🚫', style: GoogleFonts.cairo(color: Colors.redAccent, fontSize: 18, fontWeight: FontWeight.bold))),
+                                 if (penalty2 > 0) Directionality(textDirection: TextDirection.rtl, child: Text('عقوبة ${widget.team2Name}: $penalty2 ثواني 🚫', style: GoogleFonts.cairo(color: Colors.redAccent, fontSize: 18, fontWeight: FontWeight.bold))),
                                ],
                              )
                           else
-                             const Text('🔔 بانتظار ضغطة الجرس...', style: TextStyle(color: Colors.amberAccent, fontSize: 20, fontWeight: FontWeight.bold)),
+                             Directionality(
+                               textDirection: TextDirection.rtl, 
+                               child: Text('🔔 بانتظار ضغطة الجرس...', style: GoogleFonts.cairo(color: Colors.amberAccent, fontSize: 20, fontWeight: FontWeight.bold))
+                             ),
                         ],
                       ),
                       
                     const SizedBox(height: 20),
-                    Text(questions[currentQIndex]['q']!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold, height: 1.5)),
+                    Directionality(
+                      textDirection: TextDirection.rtl,
+                      child: Text(questions[currentQIndex]['q']!, textAlign: TextAlign.center, style: GoogleFonts.cairo(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold, height: 1.5))
+                    ),
                     const SizedBox(height: 30),
                     Container(
                       padding: const EdgeInsets.all(20),
                       width: double.infinity,
                       decoration: BoxDecoration(color: isAnswerRevealed ? Colors.black26 : Colors.transparent, borderRadius: BorderRadius.circular(15)),
-                      child: Text(isAnswerRevealed ? 'الإجابة: ${questions[currentQIndex]['a']}' : '--- الإجابة مخفية ---', textAlign: TextAlign.center, style: TextStyle(color: isAnswerRevealed ? Colors.amberAccent : Colors.white38, fontSize: 26, fontWeight: FontWeight.bold)),
+                      child: Directionality(
+                        textDirection: TextDirection.rtl,
+                        child: Text(isAnswerRevealed ? 'الإجابة: ${questions[currentQIndex]['a']}' : '--- الإجابة مخفية ---', textAlign: TextAlign.center, style: GoogleFonts.cairo(color: isAnswerRevealed ? Colors.amberAccent : Colors.white38, fontSize: 26, fontWeight: FontWeight.bold))
+                      ),
                     ),
                     const SizedBox(height: 30),
                     
@@ -1128,7 +1148,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                           ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(backgroundColor: Colors.white12, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12)),
                             icon: const Icon(Icons.refresh, color: Colors.white),
-                            label: const Text('تغيير السؤال', style: TextStyle(color: Colors.white, fontSize: 20)),
+                            label: Text('تغيير السؤال', style: GoogleFonts.cairo(color: Colors.white, fontSize: 20)),
                             onPressed: () {
                               setDialogState(() {
                                 currentQIndex = (currentQIndex + 1) % questions.length;
@@ -1144,7 +1164,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                           ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF5E35B1), padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12)),
                             icon: Icon(isAnswerRevealed ? Icons.visibility_off : Icons.visibility, color: Colors.white),
-                            label: Text(isAnswerRevealed ? 'إخفاء' : 'إظهار', style: const TextStyle(color: Colors.white, fontSize: 20)),
+                            label: Text(isAnswerRevealed ? 'إخفاء' : 'إظهار', style: GoogleFonts.cairo(color: Colors.white, fontSize: 20)),
                             onPressed: () => setDialogState(() => isAnswerRevealed = !isAnswerRevealed),
                           ),
                         ],
@@ -1158,7 +1178,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.green, padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15)),
                     icon: const Icon(Icons.check_circle, color: Colors.white, size: 30),
-                    label: const Text('إجابة صحيحة', style: TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold)),
+                    label: Text('إجابة صحيحة', style: GoogleFonts.cairo(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold)),
                     onPressed: () { 
                       cleanup(); 
                       GlobalData.letterQuestionIndex[letter] = (currentQIndex + 1) % questions.length; 
@@ -1171,7 +1191,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15)),
                     icon: const Icon(Icons.cancel, color: Colors.white, size: 30),
-                    label: const Text('إجابة خاطئة', style: TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold)),
+                    label: Text('إجابة خاطئة', style: GoogleFonts.cairo(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold)),
                     onPressed: () { 
                       setDialogState(() { triggerWrongAnswer(); });
                     },
@@ -1181,13 +1201,13 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(backgroundColor: colorTeam1, padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15)),
                     onPressed: () { cleanup(); GlobalData.letterQuestionIndex[letter] = (currentQIndex + 1) % questions.length; Navigator.pop(ctx); _makeMove(r, c, 1); HostServer.updateData("-", "اختر حرفاً لتبدأ اللعبة", "-"); },
-                    child: Text('فوز ${widget.team1Name}', style: const TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold)),
+                    child: Text('فوز ${widget.team1Name}', style: GoogleFonts.cairo(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
                   IconButton(icon: const Icon(Icons.cancel, color: Colors.redAccent, size: 45), onPressed: () { cleanup(); Navigator.pop(ctx); HostServer.updateData("-", "اختر حرفاً لتبدأ اللعبة", "-"); }),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(backgroundColor: colorTeam2, padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15)),
                     onPressed: () { cleanup(); GlobalData.letterQuestionIndex[letter] = (currentQIndex + 1) % questions.length; Navigator.pop(ctx); _makeMove(r, c, 2); HostServer.updateData("-", "اختر حرفاً لتبدأ اللعبة", "-"); },
-                    child: Text('فوز ${widget.team2Name}', style: const TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold)),
+                    child: Text('فوز ${widget.team2Name}', style: GoogleFonts.cairo(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
                 ],
             );
@@ -1248,11 +1268,11 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
         title: Stack(
           alignment: Alignment.center,
           children: [
-            Text('🏆 مبروك!', textAlign: TextAlign.center, style: TextStyle(color: color, fontSize: 50, fontWeight: FontWeight.bold)),
+            Text('🏆 مبروك!', textAlign: TextAlign.center, style: GoogleFonts.cairo(color: color, fontSize: 50, fontWeight: FontWeight.bold)),
             Positioned(left: 0, top: 0, child: IconButton(icon: const Icon(Icons.close, color: Colors.redAccent, size: 40), onPressed: () => Navigator.pop(ctx))),
           ],
         ),
-        content: Text('الفائز هو: $winnerName', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 35)),
+        content: Text('الفائز هو: $winnerName', textAlign: TextAlign.center, style: GoogleFonts.cairo(color: Colors.white, fontSize: 35)),
       )
     );
   }
@@ -1279,25 +1299,30 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
           children: [
             Column(
               children: [
+                // الشريط العلوي مع ترتيب الرابط في الزاوية اليمنى القصوى
                 Container(
                   height: 70,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   color: const Color(0x9912121A), 
                   child: Row(
                     children: [
+                      // القسم الأيسر: زر العودة والفريق الأول
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white54, size: 30), onPressed: () => Navigator.pop(context)),
                           const SizedBox(width: 5),
-                          Text(widget.team1Name, style: TextStyle(color: colorTeam1, fontSize: 26, fontWeight: FontWeight.bold)),
+                          Text(widget.team1Name, style: GoogleFonts.cairo(color: colorTeam1, fontSize: 26, fontWeight: FontWeight.bold)),
                         ],
                       ),
+                      
                       const Spacer(),
+                      
+                      // القسم الأيمن (تم نقل الرابط والأدوات للزاوية اليمنى)
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(widget.team2Name, style: TextStyle(color: colorTeam2, fontSize: 26, fontWeight: FontWeight.bold)),
+                          Text(widget.team2Name, style: GoogleFonts.cairo(color: colorTeam2, fontSize: 26, fontWeight: FontWeight.bold)),
                           const SizedBox(width: 10),
                           IconButton(icon: const Icon(Icons.settings, color: Colors.white, size: 30), tooltip: 'تغيير ألوان الفرق', onPressed: _showGameSettings),
                           IconButton(icon: const Icon(Icons.refresh, color: Colors.redAccent, size: 30), onPressed: () {
@@ -1305,28 +1330,30 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                               context: context,
                               builder: (ctx) => AlertDialog(
                                 backgroundColor: const Color(0xFF4A148C),
-                                title: const Text('إعادة الجولة', style: TextStyle(color: Colors.white)),
-                                content: const Text('هل تريد تصفير اللوحة؟', style: TextStyle(color: Colors.white)),
+                                title: Text('إعادة الجولة', style: GoogleFonts.cairo(color: Colors.white)),
+                                content: Text('هل تريد تصفير اللوحة؟', style: GoogleFonts.cairo(color: Colors.white)),
                                 actions: [
-                                  TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
-                                  ElevatedButton(onPressed: () { Navigator.pop(ctx); _resetGame(); }, style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent), child: const Text('تصفير', style: TextStyle(color: Colors.white))),
+                                  TextButton(onPressed: () => Navigator.pop(ctx), child: Text('إلغاء', style: GoogleFonts.cairo())),
+                                  ElevatedButton(onPressed: () { Navigator.pop(ctx); _resetGame(); }, style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent), child: Text('تصفير', style: GoogleFonts.cairo(color: Colors.white))),
                                 ]
                               )
                             );
                           }),
                           Container(width: 2, height: 40, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 10)),
+                          
+                          // الرابط وكود الغرفة وزر الإخفاء (وضع الستريمر) 👁️
                           Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Row(
                                 children: [
-                                  const Text('horufgame.netlify.app', style: TextStyle(color: Colors.lightBlueAccent, fontSize: 16, fontWeight: FontWeight.bold)),
+                                  Text('horufgame.netlify.app', style: GoogleFonts.cairo(color: Colors.lightBlueAccent, fontSize: 16, fontWeight: FontWeight.bold)),
                                   const SizedBox(width: 5),
                                   InkWell(
                                     onTap: () {
                                       Clipboard.setData(const ClipboardData(text: 'https://horufgame.netlify.app'));
-                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم نسخ رابط اللاعبين!'), backgroundColor: Colors.green));
+                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم نسخ رابط اللاعبين!', style: GoogleFonts.cairo()), backgroundColor: Colors.green));
                                     },
                                     child: const Icon(Icons.copy, size: 18, color: Colors.white70),
                                   )
@@ -1334,9 +1361,18 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                               ),
                               Row(
                                 children: [
-                                  const Text('كود الغرفة:', style: TextStyle(color: Colors.white54, fontSize: 14)),
+                                  Text('كود الغرفة:', style: GoogleFonts.cairo(color: Colors.white54, fontSize: 14)),
                                   const SizedBox(width: 5),
-                                  SelectableText(FirebaseManager.roomCode, style: const TextStyle(color: Colors.greenAccent, fontSize: 18, letterSpacing: 3, fontWeight: FontWeight.bold)),
+                                  SelectableText(isRoomCodeHidden ? '••••' : FirebaseManager.roomCode, style: GoogleFonts.cairo(color: Colors.greenAccent, fontSize: 18, letterSpacing: isRoomCodeHidden ? 5 : 3, fontWeight: FontWeight.bold)),
+                                  const SizedBox(width: 5),
+                                  InkWell(
+                                    onTap: () {
+                                      setState(() {
+                                        isRoomCodeHidden = !isRoomCodeHidden;
+                                      });
+                                    },
+                                    child: Icon(isRoomCodeHidden ? Icons.visibility_off : Icons.visibility, size: 18, color: Colors.white70),
+                                  )
                                 ],
                               ),
                             ],

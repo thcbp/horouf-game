@@ -204,6 +204,7 @@ class GlobalData {
   ];
 }
 
+// =================== أداة رسم العلامة المائية ===================
 class HexagonPatternPainter extends CustomPainter {
   final Color color;
   final double opacity;
@@ -244,7 +245,7 @@ class HexagonPatternPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool Repaint(covariant CustomPainter oldDelegate) => false;
 }
 
 // =================== بداية التطبيق ===================
@@ -329,6 +330,7 @@ class MainMenuScreen extends StatelessWidget {
               icon: const Icon(Icons.play_arrow, color: Colors.white),
               label: const Text('انطلق للعب!', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
               onPressed: () async {
+                // تفعيل السحابة فوراً
                 await FirebaseManager.createRoom(t1Controller.text, t2Controller.text);
 
                 String newId = DateTime.now().millisecondsSinceEpoch.toString();
@@ -416,6 +418,15 @@ class MainMenuScreen extends StatelessWidget {
                 windowManager.setFullScreen(!isFull);
             }),
           ),
+          // تم نقل رسالة السيرفر إلى الزاوية السفلية اليسرى كما طلبت
+          Positioned(
+            bottom: 20, left: 20,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+              decoration: BoxDecoration(color: Colors.black45, borderRadius: BorderRadius.circular(10)),
+              child: const Text('☁️ تم ربط السيرفر السحابي بنجاح', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 14)),
+            ),
+          ),
           Center(
             child: Container(
               padding: const EdgeInsets.all(50),
@@ -439,7 +450,8 @@ class MainMenuScreen extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text('تم ربط السيرفر السحابي بنجاح ☁️', style: TextStyle(fontSize: 20, color: Colors.greenAccent, fontWeight: FontWeight.bold)),
+                        // تم تغيير النص هنا بناءً على طلبك
+                        const Text('رابط شاشة المقدم السرية 🤫', style: TextStyle(fontSize: 20, color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
                         const SizedBox(width: 20),
                         IconButton(icon: const Icon(Icons.copy, color: Colors.white), tooltip: 'نسخ رابط الشاشة السرية', onPressed: () {
                             Clipboard.setData(const ClipboardData(text: 'http://localhost:8080'));
@@ -498,6 +510,7 @@ class MainMenuScreen extends StatelessWidget {
   }
 }
 
+// =================== شاشة السجل ===================
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
   @override
@@ -594,6 +607,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 }
 
+// =================== بنك الأسئلة ===================
 class QuestionBankScreen extends StatefulWidget {
   const QuestionBankScreen({super.key});
   @override
@@ -955,6 +969,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     );
   }
 
+  // =================== نافذة السؤال الذكية ===================
   void _showSafeQuestionDialog(int r, int c) {
     int index = r * cols + c;
     String letter = currentLetters[index];
@@ -966,6 +981,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     if (currentQIndex >= questions.length) currentQIndex = 0; 
     bool isAnswerRevealed = false;
 
+    // متغيرات الجرس والعقوبة
     int? buzzerTeam;
     int timeLeft = 5;
     Timer? countdownTimer;
@@ -997,11 +1013,15 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                   if (timeLeft > 0) {
                     timeLeft--;
                   } else {
+                    // انتهى الوقت بدون إجابة (عقوبة 10 ثواني)
                     countdownTimer?.cancel();
-                    lockedTeams.add(buzzerTeam!);
+                    int pTeam = buzzerTeam!;
+                    lockedTeams.add(pTeam);
+                    Timer(const Duration(seconds: 10), () => lockedTeams.remove(pTeam));
                     buzzerTeam = null;
                     FirebaseManager.setQuestionState(true);
                     
+                    // استئناف الاستماع
                     pollingTimer = Timer.periodic(const Duration(milliseconds: 500), (t) async {
                       String b = await FirebaseManager.checkBuzzer();
                       if (b == "team1" && !lockedTeams.contains(1)) {
@@ -1065,7 +1085,8 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                         ],
                       )
                     else if (lockedTeams.length == 2)
-                      const Text('انتهت محاولات الفريقين! ❌', style: TextStyle(fontSize: 28, color: Colors.redAccent, fontWeight: FontWeight.bold))
+                      // إذا الفريقين معاقبين بنفس الوقت 
+                      const Text('الأجراس مقفلة مؤقتاً ❌⏳', style: TextStyle(fontSize: 28, color: Colors.redAccent, fontWeight: FontWeight.bold))
                     else
                       Column(
                         children: [
@@ -1137,6 +1158,7 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                     },
                   ),
                   const SizedBox(width: 20),
+                  // زر الإجابة الخاطئة (عقوبة 10 ثواني)
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15)),
                     icon: const Icon(Icons.cancel, color: Colors.white, size: 30),
@@ -1144,7 +1166,9 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                     onPressed: () { 
                       countdownTimer?.cancel();
                       setDialogState(() {
-                        lockedTeams.add(buzzerTeam!);
+                        int pTeam = buzzerTeam!;
+                        lockedTeams.add(pTeam);
+                        Timer(const Duration(seconds: 10), () => lockedTeams.remove(pTeam));
                         buzzerTeam = null;
                         startPolling();
                       });
@@ -1253,7 +1277,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
           children: [
             Column(
               children: [
-                // الشريط العلوي 
                 Container(
                   height: 70,
                   padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -1271,10 +1294,45 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                           ],
                         ),
                       ),
-                      // تفريغ مكان الكود عشان اللوجو ياخذ راحته
-                      const Expanded(
+                      // زر النسخ الأنيق للرابط 📋
+                      Expanded(
                         flex: 1,
-                        child: SizedBox(),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text('ادخل من جوالك على:', style: TextStyle(color: Colors.white54, fontSize: 14, height: 1.0)),
+                              const SizedBox(height: 2),
+                              InkWell(
+                                onTap: () {
+                                  Clipboard.setData(const ClipboardData(text: 'horufgame.netlify.app'));
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم نسخ الرابط!', style: TextStyle(fontSize: 16)), backgroundColor: Colors.green));
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                                  decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(8)),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text('horufgame.netlify.app', style: TextStyle(color: Colors.lightBlueAccent, fontSize: 18, fontWeight: FontWeight.bold, height: 1.2)),
+                                      SizedBox(width: 5),
+                                      Icon(Icons.copy, size: 16, color: Colors.lightBlueAccent),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text('كود الغرفة:', style: TextStyle(color: Colors.white54, fontSize: 14)),
+                                  const SizedBox(width: 8),
+                                  Text(FirebaseManager.roomCode, style: const TextStyle(color: Colors.greenAccent, fontSize: 24, letterSpacing: 5, fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                       Expanded(
                         flex: 1,
@@ -1374,7 +1432,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                 ),
               ],
             ),
-            
             Positioned(
               top: 5, 
               left: 0, 
@@ -1385,32 +1442,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                 ),
               ),
             ),
-
-            // لوحة الكود الجديدة في الزاوية السفلية يمين
-            Positioned(
-              bottom: 20,
-              right: 20,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                decoration: BoxDecoration(
-                  color: const Color(0xCC12121A), 
-                  borderRadius: BorderRadius.circular(15),
-                  border: Border.all(color: Colors.white24, width: 2),
-                  boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 10)],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    const Text('رابط جرس الفرق 🌐', style: TextStyle(color: Colors.white70, fontSize: 16)),
-                    const Text('horufgame.netlify.app', style: TextStyle(color: Colors.blueAccent, fontSize: 24, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 10),
-                    const Text('كود الغرفة 🔑', style: TextStyle(color: Colors.white70, fontSize: 16)),
-                    Text(FirebaseManager.roomCode, style: const TextStyle(color: Colors.greenAccent, fontSize: 40, letterSpacing: 5, fontWeight: FontWeight.bold, height: 1.0)),
-                  ],
-                ),
-              ),
-            ),
-
           ],
         ),
       ),

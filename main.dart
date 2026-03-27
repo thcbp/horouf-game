@@ -861,7 +861,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
   late Color colorTeam1;
   late Color colorTeam2;
 
-  // متغير للتحكم بإظهار/إخفاء كود الغرفة في الشريط العلوي (وضع الستريمر)
   bool isRoomCodeHidden = false;
 
   @override
@@ -973,7 +972,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
     );
   }
 
-  // =================== نافذة السؤال الذكية مع الـ 5 ثواني ونظام الأسماء ===================
   void _showSafeQuestionDialog(int r, int c) {
     int index = r * cols + c;
     String letter = currentLetters[index];
@@ -1016,7 +1014,6 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
               if (failedTeam == 1) penalty1 = 10;
               if (failedTeam == 2) penalty2 = 10;
               
-              // التكتيك الذكي: لو الفريقين تجاوبوا خطأ، تتكنسل كل العقوبات فوراً
               if (penalty1 > 0 && penalty2 > 0) {
                   penalty1 = 0;
                   penalty2 = 0;
@@ -1299,85 +1296,91 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
           children: [
             Column(
               children: [
-                // الشريط العلوي مع ترتيب الرابط في الزاوية اليمنى القصوى
+                // الشريط العلوي مصمم بذكاء للتمدد والانكماش على كل الشاشات
                 Container(
                   height: 70,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
                   color: const Color(0x9912121A), 
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // القسم الأيسر: زر العودة والفريق الأول
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white54, size: 30), onPressed: () => Navigator.pop(context)),
-                          const SizedBox(width: 5),
-                          Text(widget.team1Name, style: GoogleFonts.cairo(color: colorTeam1, fontSize: 26, fontWeight: FontWeight.bold)),
-                        ],
+                      // الفريق الأول
+                      Expanded(
+                        child: Row(
+                          children: [
+                            IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white54, size: 30), onPressed: () => Navigator.pop(context)),
+                            Flexible(child: FittedBox(fit: BoxFit.scaleDown, child: Text(widget.team1Name, style: GoogleFonts.cairo(color: colorTeam1, fontSize: 26, fontWeight: FontWeight.bold)))),
+                          ],
+                        ),
                       ),
                       
-                      const Spacer(),
+                      // مساحة اللوجو
+                      const SizedBox(width: 100),
                       
-                      // القسم الأيمن (تم نقل الرابط والأدوات للزاوية اليمنى)
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(widget.team2Name, style: GoogleFonts.cairo(color: colorTeam2, fontSize: 26, fontWeight: FontWeight.bold)),
-                          const SizedBox(width: 10),
-                          IconButton(icon: const Icon(Icons.settings, color: Colors.white, size: 30), tooltip: 'تغيير ألوان الفرق', onPressed: _showGameSettings),
-                          IconButton(icon: const Icon(Icons.refresh, color: Colors.redAccent, size: 30), onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (ctx) => AlertDialog(
-                                backgroundColor: const Color(0xFF4A148C),
-                                title: Text('إعادة الجولة', style: GoogleFonts.cairo(color: Colors.white)),
-                                content: Text('هل تريد تصفير اللوحة؟', style: GoogleFonts.cairo(color: Colors.white)),
-                                actions: [
-                                  TextButton(onPressed: () => Navigator.pop(ctx), child: Text('إلغاء', style: GoogleFonts.cairo())),
-                                  ElevatedButton(onPressed: () { Navigator.pop(ctx); _resetGame(); }, style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent), child: Text('تصفير', style: GoogleFonts.cairo(color: Colors.white))),
-                                ]
-                              )
-                            );
-                          }),
-                          Container(width: 2, height: 40, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 10)),
-                          
-                          // الرابط وكود الغرفة وزر الإخفاء (وضع الستريمر) 👁️
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Row(
+                      // الفريق الثاني + الأدوات + الرابط
+                      Expanded(
+                        flex: 2,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Flexible(child: FittedBox(fit: BoxFit.scaleDown, child: Text(widget.team2Name, style: GoogleFonts.cairo(color: colorTeam2, fontSize: 26, fontWeight: FontWeight.bold)))),
+                            const SizedBox(width: 5),
+                            IconButton(icon: const Icon(Icons.settings, color: Colors.white, size: 28), tooltip: 'تغيير ألوان الفرق', onPressed: _showGameSettings),
+                            IconButton(icon: const Icon(Icons.refresh, color: Colors.redAccent, size: 28), onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  backgroundColor: const Color(0xFF4A148C),
+                                  title: Text('إعادة الجولة', style: GoogleFonts.cairo(color: Colors.white)),
+                                  content: Text('هل تريد تصفير اللوحة؟', style: GoogleFonts.cairo(color: Colors.white)),
+                                  actions: [
+                                    TextButton(onPressed: () => Navigator.pop(ctx), child: Text('إلغاء', style: GoogleFonts.cairo())),
+                                    ElevatedButton(onPressed: () { Navigator.pop(ctx); _resetGame(); }, style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent), child: Text('تصفير', style: GoogleFonts.cairo(color: Colors.white))),
+                                  ]
+                                )
+                              );
+                            }),
+                            Container(width: 2, height: 40, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 5)),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
-                                  Text('horufgame.netlify.app', style: GoogleFonts.cairo(color: Colors.lightBlueAccent, fontSize: 16, fontWeight: FontWeight.bold)),
-                                  const SizedBox(width: 5),
-                                  InkWell(
-                                    onTap: () {
-                                      Clipboard.setData(const ClipboardData(text: 'https://horufgame.netlify.app'));
-                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم نسخ رابط اللاعبين!', style: GoogleFonts.cairo()), backgroundColor: Colors.green));
-                                    },
-                                    child: const Icon(Icons.copy, size: 18, color: Colors.white70),
-                                  )
+                                  Row(
+                                    children: [
+                                      Text('horufgame.netlify.app', style: GoogleFonts.cairo(color: Colors.lightBlueAccent, fontSize: 16, fontWeight: FontWeight.bold)),
+                                      const SizedBox(width: 5),
+                                      InkWell(
+                                        onTap: () {
+                                          Clipboard.setData(const ClipboardData(text: 'https://horufgame.netlify.app'));
+                                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم نسخ رابط اللاعبين!', style: GoogleFonts.cairo()), backgroundColor: Colors.green));
+                                        },
+                                        child: const Icon(Icons.copy, size: 18, color: Colors.white70),
+                                      )
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      Text('كود الغرفة:', style: GoogleFonts.cairo(color: Colors.white54, fontSize: 14)),
+                                      const SizedBox(width: 5),
+                                      SelectableText(isRoomCodeHidden ? '••••' : FirebaseManager.roomCode, style: GoogleFonts.cairo(color: Colors.greenAccent, fontSize: 18, letterSpacing: isRoomCodeHidden ? 5 : 3, fontWeight: FontWeight.bold)),
+                                      const SizedBox(width: 5),
+                                      InkWell(
+                                        onTap: () {
+                                          setState(() {
+                                            isRoomCodeHidden = !isRoomCodeHidden;
+                                          });
+                                        },
+                                        child: Icon(isRoomCodeHidden ? Icons.visibility_off : Icons.visibility, size: 18, color: Colors.white70),
+                                      )
+                                    ],
+                                  ),
                                 ],
                               ),
-                              Row(
-                                children: [
-                                  Text('كود الغرفة:', style: GoogleFonts.cairo(color: Colors.white54, fontSize: 14)),
-                                  const SizedBox(width: 5),
-                                  SelectableText(isRoomCodeHidden ? '••••' : FirebaseManager.roomCode, style: GoogleFonts.cairo(color: Colors.greenAccent, fontSize: 18, letterSpacing: isRoomCodeHidden ? 5 : 3, fontWeight: FontWeight.bold)),
-                                  const SizedBox(width: 5),
-                                  InkWell(
-                                    onTap: () {
-                                      setState(() {
-                                        isRoomCodeHidden = !isRoomCodeHidden;
-                                      });
-                                    },
-                                    child: Icon(isRoomCodeHidden ? Icons.visibility_off : Icons.visibility, size: 18, color: Colors.white70),
-                                  )
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -1385,12 +1388,12 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
                 Expanded(
                   child: LayoutBuilder(
                     builder: (context, constraints) {
-                      double maxR_byHeight = (constraints.maxHeight * 0.76) / 8.0; 
-                      double maxR_byWidth = (constraints.maxWidth * 0.96) / 9.526;
+                      double maxR_byHeight = (constraints.maxHeight * 0.85) / 8.0; 
+                      double maxR_byWidth = (constraints.maxWidth * 0.95) / 9.526;
                       double radius = min(maxR_byHeight, maxR_byWidth);
                       
-                      if (radius < 90.0) radius = 105.0; 
-                      radius = radius.clamp(60.0, 145.0);
+                      // هنا تم إزالة الحد الأدنى الإجباري لتعمل اللعبة على كل الشاشات المكبّرة بصرياً
+                      radius = radius.clamp(30.0, 140.0);
 
                       double width = radius * 1.732;
                       double height = radius * 2;
@@ -1445,12 +1448,18 @@ class _GameBoardScreenState extends State<GameBoardScreen> {
               ],
             ),
             Positioned(
-              top: 5, 
+              top: 0, 
               left: 0, 
               right: 0,
               child: Center(
                 child: IgnorePointer(
-                  child: buildHostTitle(),
+                  child: SizedBox(
+                    height: 100, // تقييد اللوجو عشان ما يكبر ويغطي على الأزرار
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: buildHostTitle(),
+                    ),
+                  ),
                 ),
               ),
             ),
